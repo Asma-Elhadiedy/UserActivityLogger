@@ -1,0 +1,66 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net7.0;net8.0;net9.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Title>User Activity Logger</Title>
+		<Copyright>Asma El-Hadiedy</Copyright>
+		<Company>Asma El-Hadiedy</Company>
+		<Authors>Asma El-Hadiedy</Authors>
+		<PackageIcon>nuget_activity_log_icon_colorful.png</PackageIcon>
+		<PackAsTool>True</PackAsTool>
+		<IncludeSymbols>False</IncludeSymbols>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageReadmeFile>user-activity-logger-readme (1).md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.TXT</PackageLicenseFile>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<Description>✅ "Lightweight with Rich Context"
+✅ "Zero configuration for basic scenarios"
+✅ "Built-in security with automatic redaction"
+✅ "Perfect for admin panels and user management"
+✅ "Under 5 minutes setup time"</Description>
+		<Version>1.0.2</Version>
+		<PackageTags>logging;audit;activity;aspnetcore;entityframework</PackageTags>
+	</PropertyGroup>
+	
+	<!-- .NET 7 gets EF Core 7 -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="7.0.0" />
+	</ItemGroup>
+
+	<!-- .NET 8 gets EF Core 8 -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="8.0.0" />
+
+	</ItemGroup>
+
+	<!-- .NET 9 gets EF Core 9 -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.11" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.11" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="C:\Users\Asma El-hadiedy\Downloads\nuget_activity_log_icon_colorful.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="C:\Users\Asma El-hadiedy\Downloads\LICENSE.TXT">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="C:\Users\Asma El-hadiedy\Downloads\user-activity-logger-readme (1).md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
+	</ItemGroup>
+
+</Project>
