@@ -37,6 +37,6 @@ public class UserActivityLog
     /// Navigation property to the user entity.
     /// Note: This should be configured in your DbContext to point to your actual user entity.
     /// 
-    [ForeignKey(nameof(UserId))]
-    public virtual object? User { get; set; }
+    //[ForeignKey(nameof(UserId))]
+    //public virtual object? User { get; set; }
 }

@@ -18,11 +18,15 @@ internal static class IpAddressHelper
         if (ipAddress == null)
             return null;
 
-        // Handle IPv6 to IPv4 mapping
+        // 1. Handle the IPv6 loopback address (::1)
+        if (IPAddress.IPv6Loopback.Equals(ipAddress))
+            return IPAddress.Loopback.ToString(); 
+        
+
+        // 2. Handle IPv4 to IPv6 mapped addresses (::FFFF:<IPv4>)
         if (ipAddress.IsIPv4MappedToIPv6)
-        {
             return ipAddress.MapToIPv4().ToString();
-        }
+        
 
         return ipAddress.ToString();
     }

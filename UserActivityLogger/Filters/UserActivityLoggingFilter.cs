@@ -7,10 +7,10 @@ namespace UserActivityLogger.Filters;
 /// 
 public class UserActivityLoggingFilter : IAsyncResultFilter
 {
-    private readonly ILogger _logger;
+    private readonly ILogger<UserActivityLoggingFilter> _logger;
     private readonly IUserActivityLogger _userLogger;
     private readonly UserActivityLoggerOptions _options;
-    public UserActivityLoggingFilter(ILogger logger, IUserActivityLogger userLogger, UserActivityLoggerOptions options)
+    public UserActivityLoggingFilter(ILogger<UserActivityLoggingFilter> logger, IUserActivityLogger userLogger, UserActivityLoggerOptions options)
     {
         _logger = logger;
         _userLogger = userLogger;
@@ -19,7 +19,10 @@ public class UserActivityLoggingFilter : IAsyncResultFilter
 
     public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
     {
-        var attribute = GetLogUserActivityAttribute(context);
+        var attribute = context.ActionDescriptor.EndpointMetadata
+            .OfType<LogUserActivityAttribute>()
+            .FirstOrDefault(); 
+
         if (attribute == null)
         {
             await next();
@@ -114,26 +117,26 @@ public class UserActivityLoggingFilter : IAsyncResultFilter
             fieldName.Contains(redactedField, StringComparison.OrdinalIgnoreCase));
     }
 
-    private LogUserActivityAttribute? GetLogUserActivityAttribute(ResultExecutingContext context)
-    {
-        if (context.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor)
-        {
-            // Check method level first
-            var methodAttribute = controllerActionDescriptor.MethodInfo
-                .GetCustomAttributes(typeof(LogUserActivityAttribute), inherit: true)
-                .FirstOrDefault() as LogUserActivityAttribute;
+    //private LogUserActivityAttribute? GetLogUserActivityAttribute(ResultExecutingContext context)
+    //{
+    //    if (context.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor)
+    //    {
+    //        // Check method level first
+    //        var methodAttribute = controllerActionDescriptor.MethodInfo
+    //            .GetCustomAttributes(typeof(LogUserActivityAttribute), inherit: true)
+    //            .FirstOrDefault() as LogUserActivityAttribute;
 
-            if (methodAttribute != null)
-                return methodAttribute;
+    //        if (methodAttribute != null)
+    //            return methodAttribute;
 
-            // Fallback to controller level
-            var controllerAttribute = controllerActionDescriptor.ControllerTypeInfo
-                .GetCustomAttributes(typeof(LogUserActivityAttribute), inherit: true)
-                .FirstOrDefault() as LogUserActivityAttribute;
+    //        // Fallback to controller level
+    //        var controllerAttribute = controllerActionDescriptor.ControllerTypeInfo
+    //            .GetCustomAttributes(typeof(LogUserActivityAttribute), inherit: true)
+    //            .FirstOrDefault() as LogUserActivityAttribute;
 
-            return controllerAttribute;
-        }
+    //        return controllerAttribute;
+    //    }
 
-        return null;
-    }
+    //    return null;
+    //}
 }

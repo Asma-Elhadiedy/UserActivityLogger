@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
 
         // Register filter
         services.AddScoped<IUserActivityLogger, UserActivityLoggerService<TContext>>();
+        services.AddScoped<UserActivityLoggingFilter>();
 
         return services;
     }
