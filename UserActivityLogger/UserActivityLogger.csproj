@@ -9,12 +9,14 @@
 		<Copyright>Asma El-Hadiedy</Copyright>
 		<Company>Asma El-Hadiedy</Company>
 		<Authors>Asma El-Hadiedy</Authors>
-		<PackageIcon>nuget_activity_log_icon_colorful.png</PackageIcon>
 		<PackAsTool>False</PackAsTool>
 		<IncludeSymbols>False</IncludeSymbols>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<PackageReadmeFile>user-activity-logger-readme (1).md</PackageReadmeFile>
+
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE.TXT</PackageLicenseFile>
+		
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<Description>✅ "Lightweight with Rich Context"
 ✅ "Zero configuration for basic scenarios"
@@ -23,6 +25,9 @@
 ✅ "Under 5 minutes setup time"</Description>
 		<Version>1.0.9</Version>
 		<PackageTags>logging;audit;activity;aspnetcore;entityframework</PackageTags>
+		<PackageProjectUrl>https://github.com/Asma-Elhadiedy/UserActivityLogger.git</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Asma-Elhadiedy/UserActivityLogger.git</RepositoryUrl>
+		
 	</PropertyGroup>
 	
 	<!-- .NET 9 gets EF Core 9 -->
@@ -33,21 +38,6 @@
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Include="C:\Users\Asma El-hadiedy\Downloads\nuget_activity_log_icon_colorful.png">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
-	  <None Include="C:\Users\Asma El-hadiedy\Downloads\LICENSE.TXT">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
-	  <None Include="C:\Users\Asma El-hadiedy\Downloads\user-activity-logger-readme (1).md">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
 	</ItemGroup>
 
 
