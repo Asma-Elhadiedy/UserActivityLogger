@@ -21,7 +21,7 @@ public class UserActivityLoggingFilter : IAsyncResultFilter
     {
         var attribute = context.ActionDescriptor.EndpointMetadata
             .OfType<LogUserActivityAttribute>()
-            .FirstOrDefault(); 
+            .FirstOrDefault();
 
         if (attribute == null)
         {

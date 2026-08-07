@@ -49,7 +49,7 @@ Database (UserLog Entity)
 
 ### 1️⃣ Database Setup
 
-The `UserLog` entity captures:
+The `UserActivityLog` entity captures:
 
 | Field | Description |
 |-------|-------------|

@@ -1,9 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9 d17.14
+# Visual Studio Version 18
+VisualStudioVersion = 18.8.12023.21
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserActivityLogger", "UserActivityLogger\UserActivityLogger.csproj", "{272C0B05-4DD5-4BBA-921B-D9E4FD33A65F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9D282520-973A-4C85-A660-60770506E634}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{77ECA0A9-1E52-4968-AAD2-9A98AF32D803}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserActivityLogger.Tests", "..\test-package\UserActivityLogger.Tests.csproj", "{6385998E-A1F7-1A8F-03B9-6BDA99078413}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +21,17 @@ Global
 		{272C0B05-4DD5-4BBA-921B-D9E4FD33A65F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{272C0B05-4DD5-4BBA-921B-D9E4FD33A65F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{272C0B05-4DD5-4BBA-921B-D9E4FD33A65F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6385998E-A1F7-1A8F-03B9-6BDA99078413}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6385998E-A1F7-1A8F-03B9-6BDA99078413}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6385998E-A1F7-1A8F-03B9-6BDA99078413}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6385998E-A1F7-1A8F-03B9-6BDA99078413}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{272C0B05-4DD5-4BBA-921B-D9E4FD33A65F} = {9D282520-973A-4C85-A660-60770506E634}
+		{6385998E-A1F7-1A8F-03B9-6BDA99078413} = {77ECA0A9-1E52-4968-AAD2-9A98AF32D803}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {433EF317-16A7-417E-B856-DE6CA6AC91AC}

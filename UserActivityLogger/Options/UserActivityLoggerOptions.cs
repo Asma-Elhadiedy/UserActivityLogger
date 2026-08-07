@@ -55,7 +55,7 @@ public class UserActivityLoggerOptions
     /// Gets or sets a custom function to resolve IP addresses.
     /// Useful for scenarios with proxies or load balancers.
     /// 
-    public Func<HttpContext,string>? IpAddressResolver { get; set; }
+    public Func<HttpContext, string>? IpAddressResolver { get; set; }
 
     /// 
     /// Gets or sets the redaction placeholder text.

@@ -13,15 +13,15 @@ public class UserActivityLog
     [MaxLength(500)]
     public string Event { get; set; } = null!;
 
-    
+
     [MaxLength(50)]
     public string? IPAddress { get; set; }
 
-   
+
     [MaxLength(2000)]
     public string? Path { get; set; }
 
-   
+
     [MaxLength(10)]
     public string? Method { get; set; }
 

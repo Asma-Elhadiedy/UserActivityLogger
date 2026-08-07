@@ -13,7 +13,7 @@ public class UserActivityLoggerService<TContext> : IUserActivityLogger
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserActivityLoggerOptions _options;
 
-  
+
     public UserActivityLoggerService(
         ILogger<UserActivityLoggerService<TContext>> logger,
         TContext context,
@@ -56,14 +56,14 @@ public class UserActivityLoggerService<TContext> : IUserActivityLogger
 
         if (ShouldSkipPath(httpContext.Request.Path))
             return;
-        
+
 
         string? userId = GetUserId(httpContext);
 
         // Check if we should log anonymous users
         if (string.IsNullOrEmpty(userId) && !_options.LogAnonymousUsers)
             return;
-        
+
 
         var log = new UserActivityLog
         {
