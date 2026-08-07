@@ -67,15 +67,14 @@ The `UserActivityLog` entity captures:
  protected override void OnModelCreating(ModelBuilder builder)
  {
      base.OnModelCreating(builder);
-
-     builder.ConfigureUserActivityLogger(); 
+     builder.ConfigureUserActivityLogger();
  }
  ```
 
 Run your migrations to create the table:
 ```bash
-dotnet ef migrations add AddUserActivityLogging
-dotnet ef database update
+Add-Migration AddUserActivityLogging
+Update-Database 
 ```
 
 ### 2️⃣ Service Registration
@@ -84,7 +83,7 @@ Add to `Program.cs`:
 
 ```csharp
 // Add UserActivityLogger services
-builder.Services.AddUserActivityLogger(options =>
+builder.Services.AddUserActivityLogger<ApplicationDbContext>(options =>
 {
     options.EnableRequestBodyLogging = false;
     options.LogAnonymousUsers = true;
