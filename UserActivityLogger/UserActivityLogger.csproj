@@ -6,15 +6,19 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<Title>User Activity Logger</Title>
+		<Version>1.0.10</Version>
+		
 		<Copyright>Asma El-Hadiedy</Copyright>
 		<Company>Asma El-Hadiedy</Company>
 		<Authors>Asma El-Hadiedy</Authors>
+		
+		
 		<PackAsTool>False</PackAsTool>
 		<IncludeSymbols>False</IncludeSymbols>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 
 		<PackageIcon>icon.png</PackageIcon>
-		<PackageReadmeFile>readme.md</PackageReadmeFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
@@ -23,8 +27,7 @@
 ✅ "Built-in security with automatic redaction"
 ✅ "Perfect for admin panels and user management"
 ✅ "Under 5 minutes setup time"</Description>
-		<Version>1.0.9</Version>
-		<PackageTags>logging;audit;activity;aspnetcore;entityframework</PackageTags>
+		<PackageTags>logging;audit;useractivity;activity;aspnetcore;entityframework</PackageTags>
 		<PackageProjectUrl>https://github.com/Asma-Elhadiedy/UserActivityLogger.git</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/Asma-Elhadiedy/UserActivityLogger.git</RepositoryUrl>
 		

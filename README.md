@@ -461,7 +461,7 @@ For questions or issues:
 2. Review existing logs for patterns
 3. Contact the development team
 
-**Version:** 1.0.9  
+**Version:** 1.0.10  
 **Last Updated:** 2025  
 **Maintained by:** Asma El-Hadiedy
 
