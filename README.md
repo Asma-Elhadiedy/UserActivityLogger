@@ -37,7 +37,7 @@ Database (UserLog Entity)
 
 | Component | Purpose |
 |-----------|---------|
-| **UserLog** | Entity model for storing log entries |
+| **UserActivityLog** | Entity model for storing log entries |
 | **IUserActivityLogger** | Service interface for logging operations |
 | **UserActivityLogger** | Implementation with automatic context capture |
 | **LogUserActivityAttribute** | Declarative attribute for marking loggable actions |

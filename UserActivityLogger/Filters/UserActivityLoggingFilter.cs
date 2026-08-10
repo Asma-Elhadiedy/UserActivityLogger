@@ -1,5 +1,7 @@
 ﻿
 
+using Microsoft.AspNetCore.Mvc.Abstractions;
+
 namespace UserActivityLogger.Filters;
 
 /// 
@@ -29,6 +31,8 @@ public class UserActivityLoggingFilter : IAsyncResultFilter
             return;
         }
 
+
+
         var httpContext = context.HttpContext;
         object? requestBody = null;
 
@@ -40,9 +44,14 @@ public class UserActivityLoggingFilter : IAsyncResultFilter
         }
 
         // Determine action description
-        var action = attribute.ActionDescription
-                     ?? context.ActionDescriptor.DisplayName
+        var actionDescriptor = context.ActionDescriptor;
+        var controllerName = actionDescriptor.RouteValues["controller"] ?? string.Empty;
+        var actionName = actionDescriptor.RouteValues["action"] ?? string.Empty;
+        var logMessage = attribute.ActionDescription
+                     ?? actionDescriptor.DisplayName
                      ?? "Unknown Action";
+
+        logMessage = string.Format(logMessage, actionName, controllerName);
 
         // Execute the result
         var executedContext = await next();
@@ -54,12 +63,12 @@ public class UserActivityLoggingFilter : IAsyncResultFilter
             var conditionalAction = executedContext.HttpContext.Items["ConditionalLogAction"]?.ToString();
             if (!string.IsNullOrEmpty(conditionalAction))
             {
-                action = conditionalAction;
+                logMessage = conditionalAction;
             }
         }
 
         // Log the activity
-        await _userLogger.LogActionAsync(action, requestBody);
+        await _userLogger.LogActionAsync(logMessage, requestBody);
     }
 
     private Dictionary<string, string>? CaptureFormData(HttpContext httpContext)

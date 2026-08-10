@@ -21,9 +21,6 @@ dotnet restore
 
 # Build
 dotnet build
-
-# Run tests
-dotnet test
 ```
 
 ## Project Structure
@@ -68,11 +65,10 @@ Open an issue describing the use case before submitting a PR — this avoids was
    git checkout -b feature/your-feature-name
    ```
 3. Make your changes
-4. Add or update tests for any behavior change
+4. Add or update tests project for any behavior change
 5. Ensure the build and tests pass:
    ```bash
    dotnet build -c Release
-   dotnet test
    ```
 6. Commit with a clear message (see [Commit Messages](#commit-messages))
 7. Push and open a pull request against `main`
@@ -93,7 +89,7 @@ Use clear, present-tense messages. A good format is:
 feature: add IP resolver fallback for missing X-Forwarded-For header
 fix: fix redaction not applying to nested form keys
 docs: update README with conditional logging example
-test: add a test for the Track class
+test: add a test for the UserActivityLoggerService class
 ```
 
 
