@@ -1,7 +1,6 @@
-# 📊 User Activity Logger
+# 📊 [User Activity Logger](https://www.nuget.org/packages/UserActivityLogger)
 
 > A flexible and comprehensive logging system for tracking user activities across the application with automatic context capture and security-first design.
-
 ---
 
 ## 🎯 Overview
