@@ -1,469 +1,208 @@
-# 📊 [User Activity Logger](https://www.nuget.org/packages/UserActivityLogger)
+# UserActivityLogger
 
-> A flexible and comprehensive logging system for tracking user activities across the application with automatic context capture and security-first design.
----
+[![NuGet](https://img.shields.io/badge/NuGet-1.0.10-blue)](https://www.nuget.org/packages/UserActivityLogger)
 
-## 🎯 Overview
+A lightweight, attribute-driven user activity and audit logging library for ASP.NET Core MVC applications.
 
-The User Activity Logger provides seamless tracking of user interactions throughout your ASP.NET Core application. Using declarative attributes and action filters, it automatically captures detailed audit trails without cluttering your business logic.
-
-### ✨ Key Features
-
-- 🔐 **Automatic Security** - Redacts sensitive fields (passwords, secrets)
-- 🎯 **Zero Boilerplate** - Simple attribute decoration on controller actions
-- 📝 **Rich Context** - Captures HTTP details, user info, IP addresses, and custom data
-- ⚡ **Performance Optimized** - Selective logging with configurable verbosity
-- 🔄 **Conditional Actions** - Dynamic log descriptions based on operation results
-- 🗃️ **Database Backed** - Persistent storage with Entity Framework Core
-
----
-
-## 🏗️ Architecture
-
-```
-Controller Action
-      ↓
-[LogUserActivity] Attribute
-      ↓
-UserActivityLoggingFilter (IAsyncResultFilter)
-      ↓
-UserActivityLogger Service
-      ↓
-Database (UserLog Entity)
-```
-
-### 📦 Components
-
-| Component | Purpose |
-|-----------|---------|
-| **UserActivityLog** | Entity model for storing log entries |
-| **IUserActivityLogger** | Service interface for logging operations |
-| **UserActivityLogger** | Implementation with automatic context capture |
-| **LogUserActivityAttribute** | Declarative attribute for marking loggable actions |
-| **UserActivityLoggingFilter** | Action filter that intercepts and processes requests |
-
----
-
-## 🚀 Quick Start
-
-### 1️⃣ Database Setup
-
-The `UserActivityLog` entity captures:
-
-| Field | Description |
-|-------|-------------|
-| `Id` | Primary key |
-| `Event` | Action description |
-| `UserId` | Foreign key to Employee |
-| `ResponseStatusCode` | HTTP status code |
-| `IPAddress` | Client IP address |
-| `Path` | Full request URL |
-| `Method` | HTTP method (GET, POST, etc.) |
-| `AdditionalData` | JSON serialized custom data |
-| `DateEvent` | Timestamp (defaults to `DateTime.Now`) |
+`UserActivityLogger` records who did what, when, from where, and with what result—without adding repetitive audit code to every controller action.
 
 ```csharp
- protected override void OnModelCreating(ModelBuilder builder)
- {
-     base.OnModelCreating(builder);
-     builder.ConfigureUserActivityLogger();
- }
- ```
+[LogUserActivity("View dashboard")]
+public IActionResult Index() => View();
+```
 
-Run your migrations to create the table:
+---
+
+## Why UserActivityLogger?
+
+- **Low ceremony** — decorate an action instead of writing audit inserts.
+- **Consistent context** — captures user, path, method, IP, status, and timestamp.
+- **Opt-in by design** — only actions marked with `[LogUserActivity]` are logged.
+- **Form redaction** — configurable redaction of sensitive form fields.
+- **Conditional descriptions** — choose the event text based on the operation outcome.
+- **EF Core storage** — audit rows live in your application's database.
+- **Manual fallback** — use `IUserActivityLogger` outside the attribute path.
+
+---
+
+## How it works
+
+```text
+Controller action
+      ↓
+[LogUserActivity] metadata
+      ↓
+UserActivityLoggingFilter (global MVC result filter)
+      ↓
+UserActivityLoggerService<TContext>
+      ↓
+Application DbContext → UserActivityLog table
+```
+
+The filter writes the audit record after the action result executes. It captures the current HTTP context through `IHttpContextAccessor` and persists the entity through EF Core.
+
+For a detailed walkthrough, see [Architecture Overview](docs/architecture-overview.md).
+
+---
+
+## Quick start
+
+### 1. Install
+
 ```bash
-Add-Migration AddUserActivityLogging
-Update-Database 
+dotnet add package UserActivityLogger --version 1.0.10
 ```
 
-### 2️⃣ Service Registration
+Requires an ASP.NET Core MVC application targeting `.NET 9` with EF Core configured.
 
-Add to `Program.cs`:
+### 2. Configure the `DbContext`
 
 ```csharp
-// Add UserActivityLogger services
-builder.Services.AddUserActivityLogger<ApplicationDbContext>(options =>
+using Microsoft.EntityFrameworkCore;
+using UserActivityLogger.Extensions;
+
+public sealed class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        builder.ConfigureUserActivityLogger();
+    }
+}
+```
+
+### 3. Register services and the MVC filter
+
+```csharp
+using Microsoft.EntityFrameworkCore;
+using UserActivityLogger.Extensions;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.AddUserActivityLogger<AppDbContext>(options =>
 {
     options.EnableRequestBodyLogging = false;
     options.LogAnonymousUsers = true;
-    options.RedactedFields = new[] { "password", "pwd", "secret" };
-    options.SkipPaths = new[] { "/health", "/api/metrics" };
-    
-    // Custom IP resolver for load balancer/proxy scenarios
-    options.IpAddressResolver = (httpContext) =>
-    {
-        var forwardedFor = httpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        return !string.IsNullOrEmpty(forwardedFor) 
-            ? forwardedFor.Split(',')[0].Trim() 
-            : httpContext.Connection.RemoteIpAddress?.ToString();
-    };
+    options.SkipPaths = new[] { "/health", "/metrics" };
 });
 
-// Register the filter with MVC
 builder.Services.AddControllersWithViews(options =>
 {
-    options.AddUserActivityLogging(); // Add this line
+    options.AddUserActivityLogging();
 });
+
+var app = builder.Build();
+
+app.UseHttpsRedirection();
+app.UseRouting();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
 ```
 
-### 3️⃣ Start Logging
+Both registrations are required: `AddUserActivityLogger<TContext>()` registers the logger and its dependencies; `AddUserActivityLogging()` adds the global filter.
 
-Decorate your controller actions:
+### 4. Apply the migration
+
+The package does not ship an application migration. Create one in your application:
+
+```bash
+dotnet ef migrations add AddUserActivityLogging \
+  --project ./MyApp \
+  --startup-project ./MyApp
+
+dotnet ef database update \
+  --project ./MyApp \
+  --startup-project ./MyApp
+```
+
+Package Manager Console:
+
+```powershell
+Add-Migration AddUserActivityLogging
+Update-Database
+```
+
+### 5. Decorate an action
 
 ```csharp
-[LogUserActivity(ConstLogUser.ViewAssignments)]
-public async Task<IActionResult> Index()
+using Microsoft.AspNetCore.Mvc;
+using UserActivityLogger.Attributes;
+
+public sealed class HomeController : Controller
 {
-    return View(await _assignmentsServicesBL.PrepareListAsync());
-}
-```
-
-✅ **That's it!** The logger will automatically capture user activity.
-
----
-
-## 📖 Usage Guide
-
-### 🔹 Basic Logging
-
-Perfect for simple GET requests or actions without sensitive data:
-
-```csharp
-[HttpGet]
-[LogUserActivity("View Dashboard")]
-public async Task<IActionResult> Dashboard()
-{
-    return View();
-}
-```
-
-**What gets logged:**
-- User ID
-- Event: "View Dashboard"
-- Request path and method
-- IP address
-- Response status code
-- Timestamp
-
----
-
-### 🔹 Logging with Request Body
-
-Capture form data for POST/PUT operations (sensitive fields are automatically redacted):
-
-```csharp
-[HttpPost]
-[LogUserActivity(ConstLogUser.CreateAssignment, LogRequestBody = true)]
-public async Task<IActionResult> CreateAssignment(AssignmentVM model)
-{
-    // Your business logic
-    return Ok();
-}
-```
-
-**Security Features:**
-- ✅ Automatically redacts: `password`, `pwd`, `secret` fields
-- ✅ Skips anti-forgery tokens (`__RequestVerificationToken`)
-- ✅ Filters out DataTables parameters (`columns[]`, `order[]`, etc.)
-- ✅ JSON serializes form data with UTF-8 encoding
-
-**Example logged data:**
-```json
-{
-  "assignmentTitle": "Q4 Project Review",
-  "assignedTo": "EMP001",
-  "password": "***REDACTED***"
-}
-```
-
----
-
-### 🔹 Conditional Action Descriptions
-
-For operations with multiple outcomes (activate/deactivate, approve/reject):
-
-```csharp
-[HttpPost]
-[LogUserActivity(ConstLogUser.DeactivateSites, LogActionArguments = true)]
-public async Task<IActionResult> ChangeStatus(int id)
-{
-    var result = await _sitesServicesBL.ChangeStatusAsync(id, User.GetUserId());
-    
-    if (result == eChangeStatusResult.Activate)
+    [LogUserActivity("View dashboard")]
+    public IActionResult Index()
     {
-        // Override the log description dynamically
-        HttpContext.Items["ConditionalLogAction"] = ConstLogUser.ActivateSites;
-        return Ok(new { body = "Site activated successfully" });
-    }
-    
-    if (result == eChangeStatusResult.Deactivate)
-    {
-        HttpContext.Items["ConditionalLogAction"] = ConstLogUser.DeactivateSites;
-        return Ok(new { body = "Site deactivated successfully" });
-    }
-    
-    return BadRequest(new { body = "Operation failed" });
-}
-```
-
-**Result:** The log will show the actual operation performed (Activate vs Deactivate) instead of the default description.
-
----
-
-### 🔹 Manual Logging
-
-For scenarios outside controller actions (background jobs, SignalR hubs, etc.):
-
-```csharp
-public class ReportService
-{
-    private readonly IUserActivityLogger _userLogger;
-    
-    public ReportService(IUserActivityLogger userLogger)
-    {
-        _userLogger = userLogger;
-    }
-    
-    public async Task GenerateReport(string reportType)
-    {
-        // Your logic here...
-        
-        // Log the activity
-        await _userLogger.LogActionAsync(
-            "Generate Report", 
-            new { ReportType = reportType, GeneratedAt = DateTime.Now }
-        );
+        return View();
     }
 }
 ```
 
-**For complete control:**
-```csharp
-await _userLogger.LogAsync(new UserLog
-{
-    Event = "Background Job Completed",
-    UserId = systemUserId,
-    Path = "/jobs/process",
-    Method = "BACKGROUND",
-    AdditionalData = JsonSerializer.Serialize(jobDetails)
-});
-```
+> **Important:** version `1.0.10` has no parameterless attribute constructor. `[LogUserActivity]` alone will not compile. Use `[LogUserActivity("Description")]`, or `[LogUserActivity(null)]` to fall back to the action display name.
 
 ---
 
-## ⚙️ Configuration Reference
+## Documentation
 
-### LogUserActivityAttribute Properties
-
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `ActionDescription` | `string?` | `null` | Human-readable description of the action |
-| `LogRequestBody` | `bool` | `false` | Captures form data (auto-redacts sensitive fields) |
-| `LogActionArguments` | `bool` | `false` | Enables dynamic action description via `HttpContext.Items` |
-
-### Usage Examples
-
-```csharp
-// Minimal - uses action name as description
-[LogUserActivity]
-public IActionResult Index() => View();
-
-// With description
-[LogUserActivity("View Employee List")]
-public IActionResult Employees() => View();
-
-// With request body logging
-[HttpPost]
-[LogUserActivity("Update Profile", LogRequestBody = true)]
-public IActionResult UpdateProfile(ProfileVM model) => Ok();
-
-// With conditional logging
-[HttpPost]
-[LogUserActivity("Change Status", LogActionArguments = true)]
-public IActionResult Toggle(int id)
-{
-    // Set HttpContext.Items["ConditionalLogAction"] based on outcome
-    return Ok();
-}
-```
+| Guide | Contents |
+|---|---|
+| [Getting Started](docs/getting-started.md) | Installation, `DbContext`, `Program.cs`, migrations, verification. |
+| [Usage Guide](docs/usage-guide.md) | Attributes, predefined messages, form logging, conditional overrides, manual logging. |
+| [Architecture Overview](docs/architecture-overview.md) | Filter/service flow, entity model, indexes, limitations. |
+| [Security and Configuration](docs/security-and-configuration.md) | Options, PII, redaction, query strings, proxy IP handling. |
+| [Troubleshooting](docs/troubleshooting.md) | Common setup and runtime issues, FAQs. |
 
 ---
 
-## 🛡️ Security & Best Practices
+## Important behavior and limitations
 
-### ✅ DO
+- **Form bodies only.** Request-body capture supports form-encoded requests, not JSON.
+- **Query strings are stored in `Path`.** The current implementation decodes and stores query strings without redaction; do not put secrets in them.
+- **Redaction is form-key based.** `AdditionalData`, query strings, and values under unrecognized keys are not redacted automatically.
+- **Result filter.** Exceptions that bypass result execution are generally not logged; authorization/resource short-circuits may not reach the filter.
+- **Shared `DbContext`.** Audit writes call `SaveChangesAsync()` on the scoped application context, so pending business changes can be committed with the log.
+- **Best-effort persistence.** Database write failures are logged to `ILogger` and swallowed; the HTTP request still succeeds.
+- **Local timestamps.** `DateEvent` defaults to `DateTime.Now`; set it explicitly with `LogAsync` if UTC is required.
+- **No background queue.** Writes happen inline with the request. There is no retry, batching, or outbox.
 
-- **Use constants** for action descriptions to ensure consistency:
-  ```csharp
-  public static class ConstLogUser
-  {
-      public const string ViewAssignments = "View Assignments";
-      public const string CreateAssignment = "Create Assignment";
-      public const string ActivateSites = "Activate Site";
-  }
-  ```
-
-- **Be selective** with `LogRequestBody = true` - only use for critical operations
-- **Review logs regularly** for security auditing and compliance
-- **Implement retention policies** to manage database size
-
-### ❌ DON'T
-
-- ❌ Log every single action (causes performance overhead and noise)
-- ❌ Manually handle sensitive data redaction (it's automatic)
-- ❌ Store logs indefinitely without archiving strategy
-- ❌ Log to production without testing first
+For details and mitigations, see [Security and Configuration](docs/security-and-configuration.md) and [Architecture Overview](docs/architecture-overview.md).
 
 ---
 
-## 🔍 Querying Logs
+## Compatibility
 
-### Recent User Activity
-```csharp
-var recentActivity = await _context.UserLogs
-    .Include(l => l.User)
-    .Where(l => l.UserId == currentUserId)
-    .OrderByDescending(l => l.DateEvent)
-    .Take(50)
-    .ToListAsync();
-```
+| Item | Value |
+|---|---|
+| Target framework | `net9.0` |
+| UI integration | ASP.NET Core MVC |
+| Persistence | Entity Framework Core 9 |
+| Database providers | Any EF Core provider |
+| Current package version | `1.0.10` |
 
-### Search by Event Type
-```csharp
-var auditTrail = await _context.UserLogs
-    .Where(l => l.Event.Contains("Delete") || l.Event.Contains("Deactivate"))
-    .OrderByDescending(l => l.DateEvent)
-    .ToListAsync();
-```
-
-### Failed Operations (4xx/5xx status codes)
-```csharp
-var failures = await _context.UserLogs
-    .Where(l => l.ResponseStatusCode >= 400)
-    .Include(l => l.User)
-    .OrderByDescending(l => l.DateEvent)
-    .Take(100)
-    .ToListAsync();
-```
-
-### Activity by IP Address
-```csharp
-var suspiciousActivity = await _context.UserLogs
-    .Where(l => l.IPAddress == "192.168.1.100")
-    .OrderByDescending(l => l.DateEvent)
-    .ToListAsync();
-```
+Minimal APIs, automatic JSON body capture, and built-in retention/archival are not supported by this version.
 
 ---
 
-## 🐛 Troubleshooting
+## Contributing
 
-### ❓ Logs Not Being Created
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding guidelines, and the pull request process.
 
-**Check:**
-1. ✅ Filter is registered globally in `Program.cs`
-2. ✅ Attribute is applied to controller action
-3. ✅ `IHttpContextAccessor` is registered
-4. ✅ Database connection is valid
-5. ✅ Migrations have been applied
+## License
 
-**Debug tip:**
-```csharp
-// Add logging in UserActivityLogger constructor
-public UserActivityLogger(...)
-{
-    _logger.LogInformation("UserActivityLogger initialized");
-}
-```
-
-### ❓ Request Body Not Captured
-
-**Possible causes:**
-- `LogRequestBody = false` (check attribute settings)
-- Request is not form-encoded (must be `application/x-www-form-urlencoded` or `multipart/form-data`)
-- Fields are being filtered (DataTables params, anti-forgery tokens)
-
-**Test with:**
-```csharp
-[HttpPost]
-[LogUserActivity("Test", LogRequestBody = true)]
-public IActionResult Test([FromForm] string testField)
-{
-    return Ok(new { received = testField });
-}
-```
-
-### ❓ User ID Is NULL
-
-**Check:**
-1. User is authenticated (`User.Identity.IsAuthenticated`)
-2. `ClaimTypes.NameIdentifier` exists in claims
-3. Authentication middleware is configured properly
-
-**Verify claims:**
-```csharp
-var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-_logger.LogInformation($"Current User ID: {userId ?? "NULL"}");
-```
-
----
-
-## 🎨 Example Dashboard Query
-
-Build an activity dashboard with this query:
-
-```csharp
-public async Task<ActivityDashboardVM> GetDashboardData(DateTime fromDate)
-{
-    var logs = await _context.UserLogs
-        .Include(l => l.User)
-        .Where(l => l.DateEvent >= fromDate)
-        .ToListAsync();
-    
-    return new ActivityDashboardVM
-    {
-        TotalActions = logs.Count,
-        UniqueUsers = logs.Select(l => l.UserId).Distinct().Count(),
-        MostActiveUser = logs.GroupBy(l => l.UserId)
-            .OrderByDescending(g => g.Count())
-            .Select(g => g.First().User.Name)
-            .FirstOrDefault(),
-        TopActions = logs.GroupBy(l => l.Event)
-            .OrderByDescending(g => g.Count())
-            .Take(5)
-            .Select(g => new { Action = g.Key, Count = g.Count() })
-            .ToList(),
-        FailureRate = logs.Count(l => l.ResponseStatusCode >= 400) * 100.0 / logs.Count
-    };
-}
-```
-
----
-
-## 🚀 Future Enhancements
-
-Consider implementing:
-
-- 📨 **Background Logging** - Queue-based logging for high-traffic scenarios (using Hangfire/MassTransit)
-- 📊 **Analytics Dashboard** - Visual reporting of user activities and trends
-- 🗄️ **Auto-Archiving** - Move old logs to cold storage (e.g., Azure Blob Storage)
-- 📤 **Export Functionality** - CSV/Excel export for compliance audits
-- 🔌 **External Integration** - Send logs to Serilog, ELK Stack, or Application Insights
-- 🔔 **Alerting** - Real-time notifications for suspicious activities
-
----
-
-## 📞 Support
-
-For questions or issues:
-1. Check this documentation
-2. Review existing logs for patterns
-3. Contact the development team
-
-**Version:** 1.0.10  
-**Last Updated:** 2025  
-**Maintained by:** Asma El-Hadiedy
-
----
-  
-**Built with ❤️ for better application monitoring and security**
+MIT. See [LICENSE](LICENSE).
