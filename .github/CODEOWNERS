@@ -1,8 +1,8 @@
 # Default owners for the entire repository
-* @abdulrahmanhossam @Asma-Elhadiedy
+* @Asma-Elhadiedy
 
 # Core library implementation
-/UserActivityLogger/ @abdulrahmanhossam @Asma-Elhadiedy
+/UserActivityLogger/ @Asma-Elhadiedy
 
 # Workflows and project automation
 /.github/ @abdulrahmanhossam
