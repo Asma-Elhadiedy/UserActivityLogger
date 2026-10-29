@@ -1,33 +1,38 @@
-# ADR 0002: MVC Result Filter for Action Interception
+# ADR 0002: MVC result filter for action interception
 
-- **Status:** Accepted
-- **Date:** 2026-10-21
-- **Author:** UserActivityLogger Maintainers
+- Status: Accepted
+- Date: 2026-10-21
+- Author: UserActivityLogger Maintainers
 
 ## Context
 
-To record user activity and audit logs in an ASP.NET Core MVC application, the library needs to intercept requests, read endpoint metadata (`[LogUserActivity]`), extract request details, determine the response status code, and record the audit entry.
+Recording audit events requires discovering action metadata (`[LogUserActivity]`), capturing request parameters, evaluating the final response status code, and persisting an audit record.
 
-ASP.NET Core offers multiple interception mechanisms:
-1. HTTP Middleware: Operates outside the MVC pipeline; runs for every HTTP request before routing is finalized.
-2. MVC Action Filter (`IAsyncActionFilter`): Operates around the action method before the result (`IActionResult`) is executed.
-3. MVC Result Filter (`IAsyncResultFilter`): Operates around the result execution (`ViewResult`, `JsonResult`, etc.) after the action has produced its result.
+ASP.NET Core provides three primary interception mechanisms:
+- HTTP middleware: Executes outside the MVC pipeline.
+- MVC action filter (`IAsyncActionFilter`): Executes before the action result produces an HTTP response.
+- MVC result filter (`IAsyncResultFilter`): Executes around action result execution (view rendering or response serialization).
 
 ## Decision
 
-Implement `UserActivityLoggingFilter` as an `IAsyncResultFilter` registered globally via MVC options:
-- Intercepts requests that have `LogUserActivityAttribute` in endpoint metadata.
-- Pre-captures form body if configured before executing the result.
-- Executes `await next()` to render or serialize the result.
-- Reads `HttpContext.Response.StatusCode` and writes the audit log via `IUserActivityLogger`.
+Implement `UserActivityLoggingFilter` as an `IAsyncResultFilter` registered globally in MVC options:
+- Inspect endpoint metadata for `LogUserActivityAttribute`.
+- Capture form body data before result execution if request body logging is enabled.
+- Execute `await next()` to complete action result processing.
+- Read `Response.StatusCode` and invoke `IUserActivityLogger.LogActionAsync`.
 
 ## Consequences
 
 ### Positive
-- Captures the true final HTTP status code produced by the action result execution.
-- Enables actions to pass runtime contextual messages or conditional overrides (`HttpContext.Items["ConditionalLogAction"]`).
-- Seamlessly leverages ASP.NET Core MVC endpoint routing metadata.
+- Captures the final HTTP status code produced after result execution.
+- Allows action methods to pass conditional overrides via `HttpContext.Items["ConditionalLogAction"]`.
+- Integrates directly with ASP.NET Core MVC endpoint routing metadata.
 
-### Negative / Costs
-- Unhandled exceptions thrown during action execution bypass the result filter; unhandled failures are therefore not automatically logged by the filter path alone.
-- Non-MVC endpoints (such as Minimal APIs, static files, or middleware short-circuits) are not captured by this filter.
+### Negative consequences
+- Unhandled exceptions thrown during action execution bypass result execution and are not recorded by the filter.
+- Endpoints outside MVC (such as Minimal APIs and static files) do not run this filter.
+
+## Alternatives considered
+
+- HTTP middleware: Rejected because middleware does not have native access to MVC action descriptor route values (`action`, `controller`) or endpoint metadata without custom endpoint resolution logic.
+- MVC action filter: Rejected because action filters execute before the `IActionResult` completes, leaving the final HTTP status code incomplete.

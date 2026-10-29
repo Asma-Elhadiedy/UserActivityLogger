@@ -1,17 +1,17 @@
-# Getting Started
+# Getting started
 
 This guide gets `UserActivityLogger` installed and writing audit records in an ASP.NET Core MVC application.
 
 **Package version:** `1.0.10`
 
-**Target framework:** `.NET 9`
+**Target framework:** `net8.0`, `net9.0`, or `net10.0`
 **Persistence:** Entity Framework Core
 
 ---
 
 ## Prerequisites
 
-- An ASP.NET Core MVC application targeting `net9.0` (or a compatible runtime).
+- An ASP.NET Core MVC application targeting `net8.0`, `net9.0`, or `net10.0`.
 - Entity Framework Core configured with a database provider.
 - A database where the audit table can be created.
 - Permission to add and apply an EF Core migration.

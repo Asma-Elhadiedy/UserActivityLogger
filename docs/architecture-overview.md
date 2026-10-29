@@ -1,4 +1,4 @@
-# Architecture Overview
+# Architecture overview
 
 This document explains how `UserActivityLogger` 1.0.10 works internally, what it stores, and the constraints you should account for when designing an audit feature.
 

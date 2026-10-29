@@ -1,58 +1,58 @@
-# Security Policy
+# Security policy
 
-The `UserActivityLogger` team takes the security of audit and user activity logging seriously. This policy outlines how security vulnerabilities should be reported and handled.
+This policy outlines how security vulnerabilities in UserActivityLogger are reported, triaged, and remediated.
 
-## Supported Versions
+## Supported versions
 
-We provide security updates for the current active release line across supported .NET versions:
+Security updates are provided for the active release line across supported target frameworks:
 
-| Version | Supported Target Frameworks | Status |
+| Version | Supported target frameworks | Status |
 |---|---|---|
-| `1.0.x` | `.NET 8.0`, `.NET 9.0`, `.NET 10.0` | Supported |
+| `1.0.x` | `net8.0`, `net9.0`, `net10.0` | Supported |
 | `< 1.0.0` | None | Unsupported |
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-**Do not report security vulnerabilities through public GitHub issues.**
+Do not report suspected security vulnerabilities through public GitHub issues or pull requests.
 
-If you discover a security vulnerability in `UserActivityLogger`, please report it privately:
+To report a vulnerability:
+1. Use GitHub Private Vulnerability Reporting via the repository Security tab (Settings -> Code security and analysis -> Private vulnerability reporting must be enabled by the repository owner).
+2. If Private Vulnerability Reporting is not yet enabled on the upstream repository, contact the repository maintainers via the email address listed on their GitHub profile.
 
-1. Use GitHub's **Private Vulnerability Reporting** feature via the repository's **Security** tab -> **Report a vulnerability**.
-2. If private reporting is unavailable, reach out to the project maintainers via the contact email on their GitHub profile.
+### Required information
 
-### What to Include in a Report
+Include the following technical details to accelerate triage:
+- UserActivityLogger package version (such as `1.0.10`).
+- Target framework (`net8.0`, `net9.0`, or `net10.0`) and the Entity Framework Core provider in use.
+- Detailed description of the vulnerability and security impact.
+- Minimal reproduction code or step-by-step instructions.
+- Any suggested remediation or patch.
 
-To help us triage and resolve the issue quickly, please provide:
+### Response targets
 
-- Package version affected (e.g., `1.0.10`).
-- Target framework (`net8.0`, `net9.0`, or `net10.0`) and database provider in use.
-- A clear description of the vulnerability and its potential impact.
-- Step-by-step instructions or a minimal reproducible example.
-- Any proposed fix or mitigation, if available.
-
-### What to Expect
-
-- **Acknowledgment:** We aim to acknowledge receipt of security reports within 48 hours.
-- **Triage & Assessment:** We will assess severity and confirm impact within 7 business days.
-- **Remediation & Advisory:** Once fixed, a patched NuGet package will be published, and a GitHub Security Advisory (CVE) will be released with credit to the reporter.
+- Initial acknowledgment: Within 48 hours of receipt.
+- Severity triage and confirmation: Within 7 business days.
+- Remediation: A patch release published to NuGet.org, followed by a GitHub Security Advisory.
 
 ## Scope
 
-### In Scope
-- Sensitive data leaks: Failure of the redaction mechanism leading to plain-text storage of passwords, tokens, or configured secret keys.
-- Denial of Service (DoS): Unbounded memory consumption or uncontrolled resource usage in `UserActivityLoggingFilter` or form parsing.
-- Audit integrity / bypass: Bugs that allow an attacker to forge `UserId`, spoof audit event status, or bypass logging where explicitly marked.
-- Injection vulnerabilities: Any scenario where logging input causes unexpected query manipulation or injection in supported EF Core providers.
+### In scope
 
-### Out of Scope
-- Vulnerabilities in consuming applications, hosting infrastructure, or operating systems.
-- Vulnerabilities in third-party dependencies (unless directly exposed by `UserActivityLogger` APIs).
-- Issues arising from storing sensitive information in URL query strings (the library explicitly documents that query strings are stored unredacted in `Path`).
-- Direct database tampering by individuals with administrative database access.
+- Redaction bypass: Failure of `UserActivityLoggingFilter` or `UserActivityLoggerOptions.RedactedFields` resulting in plaintext persistence of configured sensitive form fields.
+- Resource exhaustion: Unbounded memory allocation or uncontrolled execution in form parsing or string formatting.
+- Audit spoofing: Vulnerabilities allowing request actors to manipulate `UserId` or suppress audit rows on decorated endpoints.
+- Injection: SQL or parameter injection introduced through `UserActivityLogger` model configurations or service calls.
 
-## Best Practices for Consumers
+### Out of scope
 
-- **Configure Redaction:** Review `UserActivityLoggerOptions.RedactedFields` and add all sensitive keys used in your application forms.
-- **Avoid Secrets in URLs:** Never pass authentication tokens, passwords, or PII in query parameters.
-- **Secure Proxies:** When operating behind a reverse proxy or load balancer, configure a secure `IpAddressResolver` or ASP.NET Core `ForwardedHeadersMiddleware` to prevent IP spoofing.
-- **Restrict Audit Access:** Ensure that the `UserActivityLog` table in your database has appropriate read-only or restricted permissions for standard application roles.
+- Vulnerabilities in consuming host applications, web servers, or database instances.
+- Vulnerabilities in third-party dependencies not directly exposed by UserActivityLogger APIs.
+- Query string exposures: Query strings are appended to `Path` without redaction by design; consumers must not pass secrets in URLs.
+- Direct database modification by actors with administrative database credentials.
+
+## Consumer security recommendations
+
+- Review redacted fields: Ensure all sensitive form fields used by your application are included in `UserActivityLoggerOptions.RedactedFields`.
+- Do not pass secrets in query strings: The library stores the full query string in the `Path` column.
+- Use secure proxy resolution: When operating behind reverse proxies, configure ASP.NET Core `ForwardedHeadersMiddleware` or supply a validated `IpAddressResolver` to prevent client IP spoofing.
+- Restrict database permissions: Configure database user permissions so that application roles cannot alter or delete rows in `UserActivityLog`.

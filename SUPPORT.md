@@ -1,48 +1,36 @@
-# Support Policy
+# Support policy
 
-Thank you for using `UserActivityLogger`! This document guides you on where to get help and find answers to common questions.
+This document describes the support channels and triage processes for UserActivityLogger.
 
-## Getting Help
+## Support channels
 
-### 1. Check the Documentation First
+### Documentation
 
-Before asking a question or opening an issue, please check the comprehensive documentation:
+Consult the documentation before opening an issue or discussion thread:
+- [Getting started](docs/getting-started.md): Installation and setup steps.
+- [Usage guide](docs/usage-guide.md): Action attributes and manual logging.
+- [Architecture overview](docs/architecture-overview.md): Pipeline execution and data model.
+- [Security and configuration](docs/security-and-configuration.md): Options and field redaction.
+- [Troubleshooting](docs/troubleshooting.md): Common error resolutions.
 
-- [Getting Started](docs/getting-started.md) — Step-by-step setup guide for ASP.NET Core MVC & EF Core.
-- [Usage Guide](docs/usage-guide.md) — Attribute usage, manual logging, form data logging, and conditional overrides.
-- [Architecture Overview](docs/architecture-overview.md) — Deep dive into the request pipeline, data model, indexes, and design trade-offs.
-- [Security and Configuration](docs/security-and-configuration.md) — Redaction rules, IP resolution, and configuration options.
-- [Troubleshooting & FAQ](docs/troubleshooting.md) — Solutions to common issues (missing logs, migration errors, formatting issues).
+### GitHub Discussions
 
-### 2. GitHub Discussions
+For usage questions, architecture inquiries, or general discussions:
+- Use [GitHub Discussions](https://github.com/Asma-Elhadiedy/UserActivityLogger/discussions).
+- Prerequisite: GitHub Discussions must be enabled by the repository owner in repository settings (Settings -> Features -> Discussions).
+- Search previous discussions before starting a new thread.
 
-For general questions, architecture discussions, best-practice inquiries, or how-to guidance:
+### Issue tracker
 
-- Visit [GitHub Discussions](https://github.com/Asma-Elhadiedy/UserActivityLogger/discussions) (or the corresponding active repository discussions).
-- Search existing discussions to see if your question has already been answered.
-- Start a new discussion under **Q&A** or **General**.
+For confirmed defect reports or concrete enhancement proposals:
+- Search existing [GitHub Issues](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues) to prevent duplicate submissions.
+- For defects, submit using the Bug report issue form with reproduction steps and target framework.
+- For enhancements, submit using the Feature request issue form with proposed API syntax.
 
-### 3. Reporting Bugs
+### Security vulnerabilities
 
-If you have confirmed that behavior is unexpected and you suspect a bug in `UserActivityLogger`:
+Do not submit security vulnerability reports through public issues or discussions. Refer to the [Security policy](SECURITY.md) for confidential disclosure instructions.
 
-- Search [GitHub Issues](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues) to verify it hasn't already been reported.
-- Open a new issue using the **Bug report** template.
-- Include a minimal reproducible example, your target framework (.NET 8, 9, or 10), EF Core provider, and relevant configuration.
+## Support expectations
 
-### 4. Proposing Features
-
-Have an idea to improve `UserActivityLogger`?
-
-- Check the [Usage Guide](docs/usage-guide.md) and [Architecture Overview](docs/architecture-overview.md) to understand current design boundaries.
-- Open a **Feature request** issue explaining the use case and proposed API.
-
-### 5. Reporting Security Vulnerabilities
-
-Please do **not** use public issues or discussions for potential security vulnerabilities. Refer to our [Security Policy](SECURITY.md) for instructions on confidential disclosure.
-
----
-
-## Community Support Expectations
-
-`UserActivityLogger` is an open-source project maintained by volunteers. While maintainers strive to respond to issues and discussions in a timely manner, there is no guaranteed service-level agreement (SLA). Constructive contributions and community-provided answers are always welcome!
+UserActivityLogger is maintained on a volunteer basis. There is no commercial service-level agreement or guaranteed response timeline. Pull requests and constructive community answers in discussions are encouraged.

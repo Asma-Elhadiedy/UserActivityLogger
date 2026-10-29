@@ -1,32 +1,36 @@
-# ADR 0003: Synchronous Persistence Through Consuming DbContext
+# ADR 0003: Synchronous persistence through consuming DbContext
 
-- **Status:** Accepted
-- **Date:** 2026-10-21
-- **Author:** UserActivityLogger Maintainers
+- Status: Accepted
+- Date: 2026-10-21
+- Author: UserActivityLogger Maintainers
 
 ## Context
 
-Audit logging requires storing audit entities (`UserActivityLog`) into a persistent data store. The library must decide how to handle database access:
-1. Reusing the consuming application's scoped `DbContext` (`TContext`).
-2. Requiring an isolated dedicated `AuditDbContext` with separate connection string and pooling.
-3. Writing to an asynchronous background outbox or message queue (e.g., RabbitMQ, Redis, Channel worker).
+Audit records must be persisted into a relational database using Entity Framework Core. Three storage models were considered:
+- Reusing the application's scoped `DbContext` (`TContext`).
+- Introducing an isolated `AuditDbContext` with separate connection pooling and credentials.
+- Publishing records to an outbox table or message broker for asynchronous processing.
 
 ## Decision
 
-Re-use the consuming application's registered `DbContext` by implementing `UserActivityLoggerService<TContext>` where `TContext : DbContext`:
-- Consumers configure `builder.ConfigureUserActivityLogger()` in `OnModelCreating`.
-- The library registers `UserActivityLoggerService<TContext>` as a scoped service.
-- The service accesses `_context.Set<UserActivityLog>()` and calls `await _context.SaveChangesAsync()`.
-- Exceptions during `SaveChangesAsync` are logged to `ILogger` and swallowed to prioritize request success.
+Reuse the consuming application's registered `DbContext` via `UserActivityLoggerService<TContext>`:
+- The consumer configures the entity in `OnModelCreating` via `builder.ConfigureUserActivityLogger()`.
+- The service accesses `_context.Set<UserActivityLog>()` and invokes `await _context.SaveChangesAsync()`.
+- Persistence exceptions are logged via `ILogger` and swallowed to prevent logging failures from failing the primary HTTP request.
 
 ## Consequences
 
 ### Positive
-- Zero external infrastructure dependencies (no RabbitMQ, Redis, or background service configuration).
-- Minimal configuration for consumers: a single generic call `AddUserActivityLogger<AppDbContext>()`.
-- Directly inherits the transaction provider, connection strings, migrations, and pooling of the consuming application.
+- Requires no external message brokers or separate database connection pools.
+- Consumers configure logging with a single method call: `services.AddUserActivityLogger<AppDbContext>()`.
+- Directly shares the provider, connection strings, migrations, and database transactions configured in the host application.
 
-### Negative / Costs
-- Shared Unit of Work: Calling `_context.SaveChangesAsync()` commits any pending tracked entity changes in the scoped `DbContext`.
-- Audit write overhead runs inline on the request path, impacting latency.
-- Best-effort persistence: If the database write fails, the error is caught and logged, but the audit entry is lost without automatic retry.
+### Negative consequences
+- Shared unit of work: Calling `_context.SaveChangesAsync()` persists all pending entity changes tracked in the scoped `DbContext`.
+- Inline persistence: Database roundtrips execute synchronously on the request thread.
+- Best-effort persistence: If the database write fails, the error is logged and the audit record is lost without an automated retry mechanism.
+
+## Alternatives considered
+
+- Separate audit DbContext: Rejected for basic scenarios because it requires configuring secondary connection strings, connection pooling, and separate migration tooling.
+- Message broker (RabbitMQ, Redis, Kafka): Rejected because it adds external infrastructure requirements for a lightweight NuGet package.

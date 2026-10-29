@@ -1,47 +1,67 @@
-# Testing Guide
+# Testing guide
 
-This guide explains how `UserActivityLogger` is tested, how to run the sample application, and how to verify changes.
+This document describes the testing state of the repository, how to run the existing sample application, and the planned roadmap for automated test coverage.
 
----
+## Current state
 
-## Current Architecture: Sample Test Project
+The solution contains two projects:
+1. `UserActivityLogger`: The library project multi-targeting `net8.0`, `net9.0`, and `net10.0`.
+2. `UserActivityLogger.Tests`: An ASP.NET Core MVC web application targeting `net9.0` (`Microsoft.NET.Sdk.Web`).
 
-The repository includes a project named `UserActivityLogger.Tests/`. In version 1.0.10, this project is configured as an ASP.NET Core MVC Web Application (`Microsoft.NET.Sdk.Web`). It serves as an interactive sample application demonstrating:
-- DbContext configuration with `builder.ConfigureUserActivityLogger()`.
-- Service registration with `AddUserActivityLogger<ApplicationDbContext>()`.
-- Filter registration with `options.AddUserActivityLogging()`.
-- Attribute decoration on MVC controllers (`DepartmentsController` and `HomeController`).
+The `UserActivityLogger.Tests` project is an interactive sample application demonstrating integration with Entity Framework Core and SQL Server. The repository does not currently contain automated unit test projects (such as xUnit, NUnit, or MSTest) or continuous integration test runners.
 
-### Running the Sample Application
+Verification in CI currently consists of building the solution across all target frameworks, compiling the package, running static code formatting checks, and validating documentation links.
 
-To run the sample web application:
+### Running the sample application
 
-1. Update the database connection string in `UserActivityLogger.Tests/appsettings.json` (or `appsettings.Development.json`) to point to a local SQL Server instance or LocalDB.
-2. Apply EF Core migrations:
+To verify library integration manually using the sample application:
+
+1. Configure a database connection string in `UserActivityLogger.Tests/appsettings.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=UserActivityLoggerDemo;Trusted_Connection=True;MultipleActiveResultSets=true"
+     }
+   }
+   ```
+
+2. Apply the EF Core migration:
    ```bash
    dotnet ef database update --project UserActivityLogger.Tests
    ```
-3. Run the web application:
+
+3. Start the application:
    ```bash
    dotnet run --project UserActivityLogger.Tests
    ```
-4. Navigate to `https://localhost:<port>/Departments` to trigger audit logging.
-5. Inspect the `UserActivityLog` table to confirm audit records are created with IP address, user identifier, response status code, and timestamps.
 
----
+4. Navigate to `http://localhost:<port>/Departments` and perform actions (Create, Edit, Delete).
 
-## Planned Automated Testing Strategy
+5. Query the database table `UserActivityLog`:
+   ```sql
+   SELECT TOP (10) Id, Event, ResponseStatusCode, IPAddress, Path, Method, DateEvent, UserId
+   FROM UserActivityLog
+   ORDER BY DateEvent DESC;
+   ```
 
-While manual verification with the sample application validates end-to-end integration, adding automated unit and integration tests is on the roadmap:
+Expected result:
+Audit rows are present with non-zero response status codes, route paths, and timestamps.
 
-### 1. Unit Tests (xUnit)
-- `IpAddressHelperTests`: Test IP extraction with and without `X-Forwarded-For`, multiple IP commas, IPv4, IPv6, and null contexts.
-- `UserActivityLoggerOptionsTests`: Test default options, redaction lists, and custom resolver assignment.
-- `ConstPredefinedLogMessageTests`: Test string formatting with `{0}` (action) and `{1}` (controller).
+## Testing roadmap
 
-### 2. Integration Tests (`Microsoft.AspNetCore.Mvc.Testing`)
-- Use `WebApplicationFactory<Program>` with an in-memory or SQLite database to verify:
-  - Attributes trigger logging.
-  - Form parameters are redacted according to `RedactedFields`.
-  - Non-form endpoints do not attempt body parsing.
-  - Skip paths bypass logging.
+The following automated test coverage is planned for future releases:
+
+### Unit testing
+
+A dedicated test project using xUnit targeting `net8.0`, `net9.0`, and `net10.0` to verify isolated components:
+- `IpAddressHelper`: Validation of IP address extraction with single IP, multiple comma-separated proxy IPs in `X-Forwarded-For`, IPv4, IPv6, and null context fallbacks.
+- `UserActivityLoggerOptions`: Default configuration values, custom IP resolver assignment, and case-insensitive redaction matching.
+- `ConstPredefinedLogMessage`: Format string validation using `{0}` (action) and `{1}` (controller).
+
+### Integration testing
+
+An integration test suite using `Microsoft.AspNetCore.Mvc.Testing` and SQLite In-Memory:
+- Validate that endpoints with `[LogUserActivity]` persist records upon successful result execution.
+- Validate that form fields matching `RedactedFields` are replaced with the configured placeholder.
+- Validate that requests to paths matching `SkipPaths` produce no database records.
+- Validate that non-form endpoints do not trigger request body parsing.

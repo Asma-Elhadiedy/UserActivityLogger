@@ -1,45 +1,29 @@
-# UserActivityLogger Documentation Index
+# Documentation index
 
-Welcome to the documentation for **UserActivityLogger**, a lightweight, attribute-driven user activity and audit logging library for ASP.NET Core MVC applications.
+UserActivityLogger is an audit logging library for ASP.NET Core MVC applications. This directory contains integration guides, architectural specifications, configuration details, troubleshooting steps, and decision records.
 
-This directory contains user guides, architecture specifications, security guidelines, troubleshooting documents, and architecture decision records.
+## Guides for consumers
 
----
+- [Getting started](getting-started.md): Installation, DbContext configuration, service registration, and database migrations.
+- [Usage guide](usage-guide.md): Action attributes, predefined event messages, form body logging, conditional messages, and manual logging.
+- [Security and configuration](security-and-configuration.md): Options reference, sensitive field redaction, client IP resolution, and data protection.
+- [Troubleshooting](troubleshooting.md): Common setup errors, missing audit records, database issues, and runtime diagnostic steps.
 
-## 📚 Guides for Consumers
+## Architecture and decisions
 
-| Document | Description |
-|---|---|
-| [Getting Started](getting-started.md) | Installation, initial `DbContext` configuration, DI registration, and first migration. |
-| [Usage Guide](usage-guide.md) | Declarative action logging, predefined event messages, form body logging, conditional messages, and manual logging. |
-| [Security & Configuration](security-and-configuration.md) | Configuration options, PII redaction rules, reverse proxy IP handling, and data privacy. |
-| [Troubleshooting & FAQ](troubleshooting.md) | Common setup pitfalls, migration issues, missing audit rows, and runtime diagnostics. |
+- [Architecture overview](architecture-overview.md): Pipeline execution flow, filter and service responsibilities, data model, indexes, and design constraints.
+- [Architecture decision records](decisions/README.md): Historical log of design and technical decisions.
 
----
+## Contributor and developer documentation
 
-## 🏛️ Architecture & Decisions
+- [Contributor getting started](development/getting-started.md): Local development environment setup, building multiple target frameworks, and running verification.
+- [Testing guide](development/testing.md): Current sample application setup, verification workflow, and testing roadmap.
+- [Release and publishing guide](development/releasing.md): Semantic versioning, tag management, release checklist, and NuGet publishing.
 
-| Document | Description |
-|---|---|
-| [Architecture Overview](architecture-overview.md) | Pipeline execution model, filter vs service roles, entity model, database indexes, and known constraints. |
-| [Architecture Decision Records (ADRs)](decisions/README.md) | Record of architectural decisions, context, consequences, and evaluated alternatives. |
+## Project policies
 
----
-
-## 🛠️ Contributor & Developer Documentation
-
-| Document | Description |
-|---|---|
-| [Contributor Getting Started](development/getting-started.md) | Local development setup, building multi-target frameworks, and tools. |
-| [Testing Guide](development/testing.md) | How the sample application works, manual verification, and guidelines for automated testing. |
-| [Release & Publishing Guide](development/releasing.md) | Semantic versioning, release tags, NuGet publishing workflow, and release checklists. |
-
----
-
-## 🤝 Project Policies
-
-- [Contributing Guidelines](../CONTRIBUTING.md) — How to submit pull requests, coding standards, and commit conventions.
-- [Code of Conduct](../CODE_OF_CONDUCT.md) — Community standards and enforcement.
-- [Security Policy](../SECURITY.md) — Vulnerability reporting and scope.
-- [Support Guidelines](../SUPPORT.md) — Where to ask questions and get help.
-- [Changelog](../CHANGELOG.md) — Version history and release notes.
+- [Contributing guidelines](../CONTRIBUTING.md): Coding standards, commit format, and pull request checklist.
+- [Code of conduct](../CODE_OF_CONDUCT.md): Community standards and enforcement process.
+- [Security policy](../SECURITY.md): Vulnerability reporting instructions, response targets, and audit scope.
+- [Support policy](../SUPPORT.md): Help channels, issue reporting criteria, and discussion forums.
+- [Changelog](../CHANGELOG.md): Historical record of versions and changes.

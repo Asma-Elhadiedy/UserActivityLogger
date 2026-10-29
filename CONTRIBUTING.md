@@ -1,147 +1,137 @@
 # Contributing to UserActivityLogger
 
-Thank you for your interest in contributing to `UserActivityLogger`! As an open-source .NET library, we welcome contributions ranging from bug fixes and documentation improvements to new features.
+This document covers local development setup, coding standards, commit conventions, and the pull request process for UserActivityLogger.
 
-By participating in this project, you agree to abide by our [Code of Conduct](CODE_OF_CONDUCT.md).
+By contributing to this project, you agree to adhere to the [Code of conduct](CODE_OF_CONDUCT.md).
 
----
-
-## Getting Started
+## Getting started
 
 ### Prerequisites
 
-- [.NET SDK 8.0, 9.0, or 10.0](https://dotnet.microsoft.com/download)
-- [Git](https://git-scm.com/)
-- Python 3.10+ (optional, for local documentation validation)
+- .NET SDK 8.0, 9.0, or 10.0
+- Git 2.30 or newer
+- Python 3.10 or newer (for documentation checks)
 
-### Development Setup
+### Development setup
 
-```bash
-# Clone your fork
-git clone https://github.com/<your-username>/UserActivityLogger.git
-cd UserActivityLogger
+1. Fork the repository and clone your fork:
+   ```bash
+   git clone https://github.com/<your-username>/UserActivityLogger.git
+   cd UserActivityLogger
+   ```
 
-# Restore dependencies
-dotnet restore
+2. Restore dependencies:
+   ```bash
+   dotnet restore UserActivityLogger.sln
+   ```
 
-# Build solution in Release configuration
-dotnet build -c Release
+3. Build the solution:
+   ```bash
+   dotnet build UserActivityLogger.sln -c Release --no-restore
+   ```
 
-# Run verification script
-./eng/verify.sh
-```
+4. Run the local verification script:
+   ```bash
+   ./eng/verify.sh
+   ```
 
----
-
-## Repository Structure
+## Repository structure
 
 ```text
 UserActivityLogger/
-├── .github/                  # GitHub workflows, templates, labeler, scripts
-│   ├── ISSUE_TEMPLATE/       # Issue form templates (bug, feature, docs, question)
-│   ├── scripts/              # Documentation link verification script
-│   └── workflows/            # GitHub Actions (CI, publish, code quality, labeler)
-├── docs/                     # Comprehensive documentation
-│   ├── decisions/            # Architecture Decision Records (ADRs)
-│   ├── development/          # Contributor development, testing, and release guides
-│   ├── architecture-overview.md
-│   ├── getting-started.md
-│   ├── security-and-configuration.md
-│   ├── troubleshooting.md
-│   └── usage-guide.md
-├── eng/                      # Engineering scripts (verify.sh)
-├── UserActivityLogger/       # The core NuGet library project (.NET 8/9/10)
-│   ├── Attributes/           # [LogUserActivity]
-│   ├── Constants/            # Predefined log message constants
-│   ├── Entities/             # UserActivityLog entity
-│   ├── Extensions/           # ServiceCollection & ModelBuilder extensions
-│   ├── Filters/              # UserActivityLoggingFilter (MVC result filter)
-│   ├── Helpers/              # IpAddressHelper
-│   ├── Options/              # UserActivityLoggerOptions
-│   └── Services/             # IUserActivityLogger & UserActivityLoggerService
-├── UserActivityLogger.Tests/ # Sample ASP.NET Core MVC application demonstrating usage
-├── CHANGELOG.md              # Keep a Changelog history
-├── CODE_OF_CONDUCT.md        # Contributor Covenant Code of Conduct
-├── Directory.Build.props     # Common build properties & deterministic builds
-├── LICENSE                   # MIT License
-├── README.md                 # Project overview and quick start
-├── SECURITY.md               # Security policy and vulnerability disclosure
-└── SUPPORT.md                # Support channels and guidelines
+|-- .github/                  GitHub workflows, issue templates, and scripts
+|   |-- ISSUE_TEMPLATE/       Issue form definitions
+|   |-- scripts/              check-docs.py link and symbol validator
+|   \-- workflows/            Continuous integration and publish workflows
+|-- docs/                     Technical documentation
+|   |-- decisions/            Architecture Decision Records (ADRs)
+|   |-- development/          Setup, testing, and release procedures
+|   |-- architecture-overview.md
+|   |-- getting-started.md
+|   |-- security-and-configuration.md
+|   |-- troubleshooting.md
+|   \-- usage-guide.md
+|-- eng/                      verify.sh local verification script
+|-- UserActivityLogger/       Library project multi-targeting net8.0, net9.0, net10.0
+|   |-- Attributes/           LogUserActivityAttribute
+|   |-- Constants/            Predefined event template strings
+|   |-- Entities/             UserActivityLog entity definition
+|   |-- Extensions/           ServiceCollection and ModelBuilder extensions
+|   |-- Filters/              UserActivityLoggingFilter result filter
+|   |-- Helpers/              IpAddressHelper
+|   |-- Options/              UserActivityLoggerOptions
+|   \-- Services/             IUserActivityLogger and UserActivityLoggerService
+|-- UserActivityLogger.Tests/ Sample ASP.NET Core MVC application (net9.0)
+|-- CHANGELOG.md              Release history
+|-- CODE_OF_CONDUCT.md        Community standards
+|-- Directory.Build.props     Deterministic build properties
+|-- LICENSE                   MIT license
+|-- README.md                 Repository overview
+|-- SECURITY.md               Vulnerability reporting policy
+\-- SUPPORT.md                Support policy and channels
 ```
 
----
+## How to contribute
 
-## How to Contribute
+### Reporting bugs
 
-### Reporting Bugs
+1. Search existing issues to verify the defect has not been reported.
+2. Use the Bug report issue form.
+3. Provide target framework (`net8.0`, `net9.0`, or `net10.0`), Entity Framework Core provider name and version, minimal reproduction steps, and expected versus observed behavior.
 
-1. Search [existing issues](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues) to ensure the bug hasn't already been reported.
-2. Use the **Bug report** template.
-3. Include your TargetFramework (`net8.0`, `net9.0`, or `net10.0`), EF Core provider, clear reproduction steps, and expected vs. actual behavior.
+### Proposing enhancements
 
-### Proposing Enhancements
+Before writing code for non-trivial additions:
+1. Open a Feature request issue.
+2. Describe the problem, the proposed API additions, and alternatives considered.
+3. Ensure the feature fits the library boundary: lightweight audit logging for ASP.NET Core MVC applications.
 
-Before writing large amounts of code:
-1. Open a **Feature request** issue.
-2. Describe the problem, the proposed API or behavior, and any alternatives considered.
-3. Discuss with maintainers to ensure the feature fits the library's scope (lightweight, zero-ceremony audit logging for ASP.NET Core MVC).
+### Submitting a pull request
 
-### Submitting a Pull Request
-
-1. Fork the repository and create a branch from `master`:
+1. Create a focused branch from the current `master` branch:
    ```bash
    git checkout -b feat/your-feature-name
    ```
-2. Make your changes adhering to existing coding conventions.
+2. Implement your changes adhering to existing code conventions.
 3. Validate locally:
    ```bash
    ./eng/verify.sh
    ```
-4. Commit your changes using [Conventional Commits](#commit-conventions).
-5. Push to your fork and submit a Pull Request against `master`.
-6. Fill in the Pull Request template thoroughly.
+4. Commit your changes using Conventional Commits.
+5. Push to your fork and submit a pull request against `master`.
+6. Complete all checklist items in the pull request template.
 
----
+## Coding guidelines
 
-## Coding Guidelines
+- Target framework compatibility: UserActivityLogger multi-targets `net8.0`, `net9.0`, and `net10.0`. Do not use APIs introduced in .NET 9 or .NET 10 unless guarded with conditional compilation directives (`#if NET9_0_OR_GREATER`).
+- Nullable reference types: Nullable reference types are enabled across all projects (`<Nullable>enable</Nullable>`). Do not introduce compiler warnings.
+- XML documentation: All public types, methods, and properties must include valid XML documentation comments.
+- Minimal dependencies: The package references `Microsoft.AspNetCore.App` and `Microsoft.EntityFrameworkCore`. Do not introduce third-party package dependencies without an accepted Architecture Decision Record.
+- Public API stability: Preserve backward compatibility for existing types, interfaces, and method signatures in minor and patch releases.
 
-- **Target Compatibility:** The library multi-targets `net8.0`, `net9.0`, and `net10.0`. Avoid using language or framework APIs that are unavailable in .NET 8 unless guarded by conditional compilation `#if NET9_0_OR_GREATER`.
-- **Nullable Reference Types:** Nullable annotations are enabled across the project (`<Nullable>enable</Nullable>`). Do not introduce compiler warnings.
-- **XML Documentation:** All public types, methods, and properties must include accurate XML doc comments.
-- **Lightweight Dependencies:** The package relies on `Microsoft.AspNetCore.App` (framework reference) and `Microsoft.EntityFrameworkCore`. Avoid introducing unnecessary external dependencies to keep the package lightweight.
-- **Preserve Public API Compatibility:** Do not introduce breaking changes to existing public interfaces (`IUserActivityLogger`), attributes, or options without an approved Architectural Decision Record (ADR) and a major version bump plan.
+## Commit conventions
 
----
+Commit messages must follow the Conventional Commits specification:
 
-## Commit Conventions
+- `feat`: A new feature or public capability. Example: `feat: add custom header support for IP resolver`.
+- `fix`: A bug fix. Example: `fix: handle empty SkipPaths collection without exception`.
+- `docs`: Documentation changes. Example: `docs: document proxy IP header configuration`.
+- `test`: Additions or modifications to the sample application. Example: `test: add department edit scenario`.
+- `refactor`: Code restructuring without behavioral change. Example: `refactor: extract form key redaction helper`.
+- `ci`: Workflow or automation script changes. Example: `ci: add actionlint step`.
+- `chore`: Maintenance tasks, configuration updates, or dependency version bumps. Example: `chore: update editorconfig rules`.
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
+## Documentation guidelines
 
-| Type | Description | Example |
-|---|---|---|
-| `feat` | A new feature or public capability | `feat: support custom claim type for tenant id` |
-| `fix` | A bug fix | `fix: prevent NullReferenceException when SkipPaths is empty` |
-| `docs` | Documentation changes | `docs: add example for IP resolver in load balancer setup` |
-| `test` | Adding or updating tests or sample app | `test: add sample scenario for conditional logging` |
-| `refactor` | Code restructuring without behavioral change | `refactor: extract form key normalization helper` |
-| `ci` | Changes to CI workflows or scripts | `ci: add matrix test build for .NET 10` |
-| `chore` | Maintenance tasks, repository configs | `chore: update editorconfig rules` |
+- Keep documents in `docs/` synchronized with code changes.
+- Significant technical decisions require an ADR under `docs/decisions/` following the template in `docs/decisions/README.md`.
+- Verify all links pass `./.github/scripts/check-docs.py`.
 
----
+## Release and versioning
 
-## Documentation Guidelines
+This project adheres to Semantic Versioning 2.0.0:
+- MAJOR: Incompatible public API changes.
+- MINOR: Backward-compatible functionality additions.
+- PATCH: Backward-compatible bug fixes.
 
-- Keep all documentation in `docs/` synchronized with code changes.
-- If you make a significant architectural or design decision, add an ADR under `docs/decisions/` following the template in `docs/decisions/README.md`.
-- Verify that relative links work and pass `./.github/scripts/check-docs.py`.
-
----
-
-## Release & Versioning
-
-This project adheres to [Semantic Versioning (SemVer)](https://semver.org/):
-- **MAJOR** (`X.0.0`): Breaking API changes.
-- **MINOR** (`1.X.0`): New backward-compatible functionality.
-- **PATCH** (`1.0.X`): Backward-compatible bug fixes and optimizations.
-
-Maintainers manage version bumps and automated publishing to NuGet.org upon tagging. Contributors do not need to increment package versions in PRs.
+Maintainers handle version updates in `UserActivityLogger.csproj`, changelog updates, and git tagging. Do not modify the package version in contribution pull requests.
