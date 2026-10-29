@@ -1,4 +1,5 @@
-name: Question & Support
+---
+name: Question and support
 description: Ask a question about how to use or configure UserActivityLogger.
 title: "[Question]: "
 labels:
@@ -7,25 +8,25 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before opening a question issue, please check the [Documentation](https://github.com/Asma-Elhadiedy/UserActivityLogger/blob/master/docs/README.md) and consider starting a thread in [GitHub Discussions](https://github.com/Asma-Elhadiedy/UserActivityLogger/discussions).
+        Before opening a question issue, review the documentation and search GitHub Discussions.
   - type: input
     id: package-version
     attributes:
-      label: UserActivityLogger Version
+      label: Package version
       placeholder: "e.g., 1.0.10"
     validations:
       required: true
   - type: textarea
     id: question
     attributes:
-      label: Your Question
+      label: Question details
       description: Describe what you are trying to accomplish and where you need guidance.
     validations:
       required: true
   - type: textarea
     id: context
     attributes:
-      label: Relevant Setup or Code Context
+      label: Code context
       description: Share your DbContext configuration or Program.cs setup if relevant.
       render: csharp
   - type: checkboxes

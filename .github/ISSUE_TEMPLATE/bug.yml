@@ -1,4 +1,5 @@
-name: Bug Report
+---
+name: Bug report
 description: Report unexpected behavior, errors, or exceptions in UserActivityLogger.
 title: "[Bug]: "
 labels:
@@ -8,12 +9,12 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reporting an issue! Please do not include credentials, passwords, connection strings, or sensitive data in this report.
-        If this is a security vulnerability, report it privately under [SECURITY.md](https://github.com/Asma-Elhadiedy/UserActivityLogger/security/policy).
+        Do not include credentials, passwords, connection strings, or sensitive data in this report.
+        Report security vulnerabilities privately under SECURITY.md.
   - type: input
     id: package-version
     attributes:
-      label: UserActivityLogger Package Version
+      label: Package version
       description: What version of the NuGet package are you using?
       placeholder: "e.g., 1.0.10"
     validations:
@@ -21,7 +22,7 @@ body:
   - type: dropdown
     id: target-framework
     attributes:
-      label: Target Framework
+      label: Target framework
       description: Which .NET target framework is your consuming application running on?
       options:
         - ".NET 8.0"
@@ -33,22 +34,22 @@ body:
   - type: input
     id: efcore-provider
     attributes:
-      label: EF Core Database Provider
-      description: Which EF Core provider are you using (e.g., SqlServer, Npgsql, Sqlite, Pomelo)?
+      label: EF Core database provider
+      description: Which EF Core provider are you using?
       placeholder: "e.g., Microsoft.EntityFrameworkCore.SqlServer 9.0.0"
     validations:
       required: true
   - type: textarea
     id: what-happened
     attributes:
-      label: What happened?
-      description: Describe the observed behavior and how it differs from what you expected.
+      label: Observed behavior
+      description: Describe what happened and how it differs from what you expected.
     validations:
       required: true
   - type: textarea
     id: reproduction-steps
     attributes:
-      label: Steps to Reproduce
+      label: Steps to reproduce
       description: Provide step-by-step instructions or a minimal code example to reproduce the issue.
       placeholder: |
         1. Configure UserActivityLogger in Program.cs with options: ...
@@ -60,15 +61,15 @@ body:
   - type: textarea
     id: logs-and-stacktrace
     attributes:
-      label: Logs / Stack Trace
-      description: Paste any relevant console output or exception stack traces (remember to redact secrets).
+      label: Logs and stack trace
+      description: Paste relevant console output or exception stack traces (redact secrets).
       render: shell
   - type: checkboxes
     id: checks
     attributes:
       label: Checklist
       options:
-        - label: I searched existing GitHub issues and discussions to verify this isn't already reported.
+        - label: I searched existing GitHub issues and discussions first.
           required: true
         - label: I confirmed no passwords, tokens, or private data are present in this report.
           required: true

@@ -1,10 +1,13 @@
+---
 name: CI
 
-on:
+"on":
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    branches: [master]
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
@@ -19,6 +22,8 @@ jobs:
     name: Documentation checks
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -32,9 +37,11 @@ jobs:
         run: python3 .github/scripts/check-docs.py
 
   build-and-pack:
-    name: Build and Pack
+    name: Build and pack
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -50,13 +57,15 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore UserActivityLogger.sln
 
-      - name: Build solution (Release)
+      - name: Build solution
         run: dotnet build UserActivityLogger.sln -c Release --no-restore
 
       - name: Pack NuGet library
-        run: dotnet pack UserActivityLogger/UserActivityLogger.csproj -c Release --no-build --output ./artifacts
+        run: >-
+          dotnet pack UserActivityLogger/UserActivityLogger.csproj
+          -c Release --no-build --output ./artifacts
 
-      - name: Upload NuGet Package Artifact
+      - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
           name: nuget-package

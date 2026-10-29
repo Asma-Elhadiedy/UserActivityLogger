@@ -1,10 +1,13 @@
-name: Code Quality
+---
+name: Code quality
 
-on:
+"on":
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    branches: [master]
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:
@@ -19,6 +22,8 @@ jobs:
     name: Code formatting check
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -38,4 +43,7 @@ jobs:
         run: dotnet format style --verify-no-changes --no-restore
 
       - name: Verify whitespace formatting
-        run: dotnet format whitespace --verify-no-changes --no-restore --exclude UserActivityLogger/Constants/ConstPredefinedLogMessage.cs UserActivityLogger.Tests/Controllers/DepartmentsController.cs
+        run: >-
+          dotnet format whitespace --verify-no-changes --no-restore
+          --exclude UserActivityLogger/Constants/ConstPredefinedLogMessage.cs
+          UserActivityLogger.Tests/Controllers/DepartmentsController.cs

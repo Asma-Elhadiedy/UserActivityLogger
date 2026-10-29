@@ -1,3 +1,4 @@
+---
 name: Documentation
 description: Report an error, missing section, or improvement in the documentation.
 title: "[Docs]: "
@@ -8,22 +9,22 @@ body:
   - type: input
     id: doc-path
     attributes:
-      label: Documentation Location
+      label: Documentation location
       description: Which file, guide, or section needs improvement?
-      placeholder: "e.g., docs/security-and-configuration.md §3"
+      placeholder: "e.g., docs/security-and-configuration.md"
     validations:
       required: true
   - type: textarea
     id: issue-description
     attributes:
-      label: Description of the Problem
+      label: Description of the problem
       description: What is inaccurate, outdated, unclear, or missing?
     validations:
       required: true
   - type: textarea
     id: suggested-fix
     attributes:
-      label: Suggested Change
+      label: Suggested change
       description: Provide the revised text, code sample, or clarification.
     validations:
       required: true
@@ -32,5 +33,5 @@ body:
     attributes:
       label: Checklist
       options:
-        - label: I verified that the issue is in the latest version of the documentation on master.
+        - label: I verified this issue exists in documentation on the master branch.
           required: true

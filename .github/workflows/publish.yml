@@ -1,13 +1,14 @@
+---
 name: Publish to NuGet
 
-on:
+"on":
   push:
     tags:
       - "v*.*.*"
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish (optional if building from current project version)"
+        description: "Release version override (defaults to project version)"
         required: false
         type: string
 
@@ -16,12 +17,28 @@ permissions:
 
 jobs:
   publish:
-    name: Build, Pack and Publish
+    name: Build, pack, and publish
+    if: github.repository == 'Asma-Elhadiedy/UserActivityLogger'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Validate tag matches project version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PROJECT_VERSION=$(grep -oPm1 '(?<=<Version>)[^<]+' UserActivityLogger/UserActivityLogger.csproj)
+          echo "Git tag version: $TAG_VERSION"
+          echo "Project version: $PROJECT_VERSION"
+          if [ "$TAG_VERSION" != "$PROJECT_VERSION" ]; then
+            echo "Error: Git tag version ($TAG_VERSION) does not match project version ($PROJECT_VERSION)."
+            exit 1
+          fi
 
       - name: Set up .NET SDKs
         uses: actions/setup-dotnet@v4
@@ -34,18 +51,21 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore UserActivityLogger.sln
 
-      - name: Build solution (Release)
+      - name: Build solution
         run: dotnet build UserActivityLogger.sln -c Release --no-restore
 
       - name: Pack NuGet package
-        run: dotnet pack UserActivityLogger/UserActivityLogger.csproj -c Release --no-build --output ./artifacts
+        run: >-
+          dotnet pack UserActivityLogger/UserActivityLogger.csproj
+          -c Release --no-build --output ./artifacts
 
       - name: Publish to NuGet.org
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          if [ -z "$NUGET_API_KEY" ]; then
-            echo "::error::NUGET_API_KEY secret is not configured. Please add it to repository secrets."
+          set -euo pipefail
+          if [ -z "${NUGET_API_KEY:-}" ]; then
+            echo "Error: NUGET_API_KEY secret is not set."
             exit 1
           fi
           dotnet nuget push "./artifacts/*.nupkg" \
@@ -53,9 +73,9 @@ jobs:
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
-      - name: Create GitHub Release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/v')
         with:
           files: ./artifacts/*
           generate_release_notes: true
