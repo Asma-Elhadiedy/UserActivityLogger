@@ -1,4 +1,4 @@
-# Security and Configuration
+# Security and configuration
 
 This guide documents the configuration surface of `UserActivityLogger` 1.0.10 and the security considerations that matter when audit records contain user, request, and form data.
 

@@ -1,4 +1,4 @@
-# Usage Guide
+# Usage guide
 
 This guide covers the public usage patterns for `UserActivityLogger` 1.0.10.
 

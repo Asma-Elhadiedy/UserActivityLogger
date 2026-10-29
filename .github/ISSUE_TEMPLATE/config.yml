@@ -1,0 +1,12 @@
+---
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability report
+    url: https://github.com/Asma-Elhadiedy/UserActivityLogger/security/policy
+    about: Report security vulnerabilities privately.
+  - name: Documentation
+    url: https://github.com/Asma-Elhadiedy/UserActivityLogger#documentation
+    about: Read the official documentation and guides.
+  - name: Questions and discussions
+    url: https://github.com/Asma-Elhadiedy/UserActivityLogger/discussions
+    about: Ask questions and share implementation ideas.

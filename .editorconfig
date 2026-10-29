@@ -1,0 +1,21 @@
+# Top-most EditorConfig file
+root = true
+
+# All files
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+
+# Markdown files
+[*.md]
+indent_size = 2
+
+# JSON and YAML files
+[*.{json,yml,yaml}]
+indent_size = 2
+
+# C# files
+[*.cs]
+indent_size = 4
+dotnet_diagnostic.WHITESPACE.severity = none

@@ -1,29 +1,26 @@
 # UserActivityLogger
 
-[![NuGet](https://img.shields.io/badge/NuGet-1.0.10-blue)](https://www.nuget.org/packages/UserActivityLogger)
+[![NuGet](https://img.shields.io/nuget/v/UserActivityLogger.svg)](https://www.nuget.org/packages/UserActivityLogger)
+[![CI](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-A lightweight, attribute-driven user activity and audit logging library for ASP.NET Core MVC applications.
+An audit logging library for ASP.NET Core MVC applications.
 
-`UserActivityLogger` records who did what, when, from where, and with what result—without adding repetitive audit code to every controller action.
+UserActivityLogger records user identity, route path, HTTP method, client IP address, response status code, and timestamp for actions decorated with the `[LogUserActivity]` attribute.
 
 ```csharp
 [LogUserActivity("View dashboard")]
 public IActionResult Index() => View();
 ```
 
----
+## Features
 
-## Why UserActivityLogger?
-
-- **Low ceremony** — decorate an action instead of writing audit inserts.
-- **Consistent context** — captures user, path, method, IP, status, and timestamp.
-- **Opt-in by design** — only actions marked with `[LogUserActivity]` are logged.
-- **Form redaction** — configurable redaction of sensitive form fields.
-- **Conditional descriptions** — choose the event text based on the operation outcome.
-- **EF Core storage** — audit rows live in your application's database.
-- **Manual fallback** — use `IUserActivityLogger` outside the attribute path.
-
----
+- Attribute decoration: Opt-in audit logging via `[LogUserActivity]`.
+- Request context: Captures user ID, path, query string, HTTP method, client IP, response status, and timestamp.
+- Form data redaction: Configurable redaction for sensitive form fields.
+- Conditional event messages: Override event descriptions based on execution outcome.
+- Entity Framework Core storage: Writes audit entities directly through your application DbContext.
+- Manual interface: Direct logging via `IUserActivityLogger` outside the attribute filter pipeline.
 
 ## How it works
 
@@ -36,26 +33,24 @@ UserActivityLoggingFilter (global MVC result filter)
       ↓
 UserActivityLoggerService<TContext>
       ↓
-Application DbContext → UserActivityLog table
+Application DbContext -> UserActivityLog table
 ```
 
-The filter writes the audit record after the action result executes. It captures the current HTTP context through `IHttpContextAccessor` and persists the entity through EF Core.
+The filter writes the audit record after the action result executes. It reads request context through `IHttpContextAccessor` and persists the entity through Entity Framework Core.
 
-For a detailed walkthrough, see [Architecture Overview](docs/architecture-overview.md).
-
----
+For architectural details, see the [Architecture overview](docs/architecture-overview.md).
 
 ## Quick start
 
-### 1. Install
+### 1. Install package
 
 ```bash
 dotnet add package UserActivityLogger --version 1.0.10
 ```
 
-Requires an ASP.NET Core MVC application targeting `.NET 9` with EF Core configured.
+Requires an ASP.NET Core MVC application targeting `net8.0`, `net9.0`, or `net10.0` with Entity Framework Core configured.
 
-### 2. Configure the `DbContext`
+### 2. Configure DbContext
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -77,7 +72,7 @@ public sealed class AppDbContext : DbContext
 }
 ```
 
-### 3. Register services and the MVC filter
+### 3. Register services and filter
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
@@ -115,27 +110,15 @@ app.MapControllerRoute(
 app.Run();
 ```
 
-Both registrations are required: `AddUserActivityLogger<TContext>()` registers the logger and its dependencies; `AddUserActivityLogging()` adds the global filter.
+Both calls are required: `AddUserActivityLogger<TContext>()` registers the logger and options in dependency injection; `AddUserActivityLogging()` adds the result filter to MVC options.
 
-### 4. Apply the migration
+### 4. Apply migration
 
-The package does not ship an application migration. Create one in your application:
+The package does not contain migrations. Add and apply a migration in the consuming project:
 
 ```bash
-dotnet ef migrations add AddUserActivityLogging \
-  --project ./MyApp \
-  --startup-project ./MyApp
-
-dotnet ef database update \
-  --project ./MyApp \
-  --startup-project ./MyApp
-```
-
-Package Manager Console:
-
-```powershell
-Add-Migration AddUserActivityLogging
-Update-Database
+dotnet ef migrations add AddUserActivityLogging
+dotnet ef database update
 ```
 
 ### 5. Decorate an action
@@ -154,54 +137,46 @@ public sealed class HomeController : Controller
 }
 ```
 
-> **Important:** version `1.0.10` has no parameterless attribute constructor. `[LogUserActivity]` alone will not compile. Use `[LogUserActivity("Description")]`, or `[LogUserActivity(null)]` to fall back to the action display name.
-
----
+Note: In version 1.0.10, `LogUserActivityAttribute` requires an action description argument. Use `[LogUserActivity("Description")]` or `[LogUserActivity(null)]` to use the action display name (tracked in [#23](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/23)).
 
 ## Documentation
 
-| Guide | Contents |
-|---|---|
-| [Getting Started](docs/getting-started.md) | Installation, `DbContext`, `Program.cs`, migrations, verification. |
-| [Usage Guide](docs/usage-guide.md) | Attributes, predefined messages, form logging, conditional overrides, manual logging. |
-| [Architecture Overview](docs/architecture-overview.md) | Filter/service flow, entity model, indexes, limitations. |
-| [Security and Configuration](docs/security-and-configuration.md) | Options, PII, redaction, query strings, proxy IP handling. |
-| [Troubleshooting](docs/troubleshooting.md) | Common setup and runtime issues, FAQs. |
-
----
+- [Getting started](docs/getting-started.md): Installation, DbContext setup, and migrations.
+- [Usage guide](docs/usage-guide.md): Attributes, predefined messages, form logging, and manual logging.
+- [Architecture overview](docs/architecture-overview.md): Pipeline flow, entity schema, design decisions, and limitations.
+- [Security and configuration](docs/security-and-configuration.md): Options, redaction, and proxy handling.
+- [Troubleshooting](docs/troubleshooting.md): Common setup issues and diagnostic checks.
 
 ## Important behavior and limitations
 
-- **Form bodies only.** Request-body capture supports form-encoded requests, not JSON.
-- **Query strings are stored in `Path`.** The current implementation decodes and stores query strings without redaction; do not put secrets in them.
-- **Redaction is form-key based.** `AdditionalData`, query strings, and values under unrecognized keys are not redacted automatically.
-- **Result filter.** Exceptions that bypass result execution are generally not logged; authorization/resource short-circuits may not reach the filter.
-- **Shared `DbContext`.** Audit writes call `SaveChangesAsync()` on the scoped application context, so pending business changes can be committed with the log.
-- **Best-effort persistence.** Database write failures are logged to `ILogger` and swallowed; the HTTP request still succeeds.
-- **Local timestamps.** `DateEvent` defaults to `DateTime.Now`; set it explicitly with `LogAsync` if UTC is required.
-- **No background queue.** Writes happen inline with the request. There is no retry, batching, or outbox.
-
-For details and mitigations, see [Security and Configuration](docs/security-and-configuration.md) and [Architecture Overview](docs/architecture-overview.md).
-
----
+- Form bodies only: Request body capture reads form-encoded content (`Request.HasFormContentType`). JSON payloads are not captured (tracked in [#12](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/12)).
+- Query strings in path: Query strings are appended to `Path` without redaction. Do not pass credentials or secrets in query parameters (tracked in [#7](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/7), [#24](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/24)).
+- Form-key redaction: Redaction applies only to form field names matching configured terms. Values in `AdditionalData` or query strings are not redacted (tracked in [#7](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/7)).
+- Result filter boundary: The filter executes after result execution. Unhandled exceptions that bypass result execution are not logged by the filter (tracked in [#5](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/5)).
+- Shared DbContext unit of work: Persistence calls `SaveChangesAsync()` on the scoped application context. Pending entity changes in the same scope are saved together (tracked in [#3](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/3)).
+- Inline persistence: Writes occur synchronously within the HTTP request pipeline. There is no background queue or retry mechanism (tracked in [#3](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/3)).
+- Best-effort persistence: Database write exceptions are caught, logged via `ILogger`, and suppressed. The client response still succeeds (tracked in [#2](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/2)).
+- Local timestamps: `DateEvent` defaults to `DateTime.Now` (server local time). Set `DateEvent` explicitly via `LogAsync` if UTC is required (tracked in [#13](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/13)).
 
 ## Compatibility
 
 | Item | Value |
 |---|---|
-| Target framework | `net9.0` |
+| Target framework | `net8.0`, `net9.0`, `net10.0` |
 | UI integration | ASP.NET Core MVC |
-| Persistence | Entity Framework Core 9 |
-| Database providers | Any EF Core provider |
+| Persistence | Entity Framework Core 8, 9, 10 |
+| Database providers | Any Entity Framework Core provider |
 | Current package version | `1.0.10` |
 
-Minimal APIs, automatic JSON body capture, and built-in retention/archival are not supported by this version.
+Minimal APIs, automated JSON body capture, and built-in retention jobs are not supported in version 1.0.10.
 
----
+## Community and contributing
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding guidelines, and the pull request process.
+- [Contributing guidelines](CONTRIBUTING.md): Environment setup, coding conventions, and pull request process.
+- [Code of conduct](CODE_OF_CONDUCT.md): Participation standards and reporting.
+- [Security policy](SECURITY.md): Vulnerability reporting instructions and scope.
+- [Support policy](SUPPORT.md): Questions, issue triage, and discussion channels.
+- [Changelog](CHANGELOG.md): Historical record of releases and changes.
 
 ## License
 

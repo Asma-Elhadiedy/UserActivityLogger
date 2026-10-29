@@ -1,0 +1,58 @@
+---
+name: Feature request
+description: Propose a new feature, option, or improvement to UserActivityLogger.
+title: "[Feature]: "
+labels:
+  - "enhancement"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        UserActivityLogger focuses on audit logging for ASP.NET Core MVC applications.
+        Explain how the proposal aligns with this scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem description
+      description: What use case are you trying to solve? Who is affected?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed solution and API design
+      description: Describe the proposed behavior and provide code snippets showing the API usage.
+      placeholder: |
+        ```csharp
+        builder.Services.AddUserActivityLogger<AppDbContext>(options =>
+        {
+            // Proposed option or configuration
+        });
+        ```
+    validations:
+      required: true
+  - type: dropdown
+    id: breaking-change
+    attributes:
+      label: Breaking change assessment
+      description: Does this proposal require breaking changes to existing public types or interfaces?
+      options:
+        - "No - fully backward compatible"
+        - "Yes - requires a major version bump"
+        - "Unsure"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches or workarounds did you consider?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and feature requests first.
+          required: true
+        - label: I reviewed the architecture overview and understand current library constraints.
+          required: true

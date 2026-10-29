@@ -1,0 +1,12 @@
+# Default owners for the entire repository
+* @Asma-Elhadiedy
+
+# Core library implementation
+/UserActivityLogger/ @Asma-Elhadiedy
+
+# Workflows and project automation
+/.github/ @abdulrahmanhossam
+/eng/ @abdulrahmanhossam
+
+# Documentation
+/docs/ @abdulrahmanhossam @Asma-Elhadiedy
