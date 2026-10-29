@@ -1,6 +1,8 @@
 # UserActivityLogger
 
 [![NuGet](https://img.shields.io/badge/NuGet-1.0.10-blue)](https://www.nuget.org/packages/UserActivityLogger)
+[![CI](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml/badge.svg)](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A lightweight, attribute-driven user activity and audit logging library for ASP.NET Core MVC applications.
 
@@ -160,11 +162,15 @@ public sealed class HomeController : Controller
 
 ## Documentation
 
+For a comprehensive overview of all documentation, visit the [Documentation Index](docs/README.md).
+
 | Guide | Contents |
 |---|---|
+| [Documentation Index](docs/README.md) | Central table of contents for guides, architecture, and policies. |
 | [Getting Started](docs/getting-started.md) | Installation, `DbContext`, `Program.cs`, migrations, verification. |
 | [Usage Guide](docs/usage-guide.md) | Attributes, predefined messages, form logging, conditional overrides, manual logging. |
 | [Architecture Overview](docs/architecture-overview.md) | Filter/service flow, entity model, indexes, limitations. |
+| [Architecture Decisions (ADRs)](docs/decisions/README.md) | Historical record of design and architectural decisions. |
 | [Security and Configuration](docs/security-and-configuration.md) | Options, PII, redaction, query strings, proxy IP handling. |
 | [Troubleshooting](docs/troubleshooting.md) | Common setup and runtime issues, FAQs. |
 
@@ -189,9 +195,9 @@ For details and mitigations, see [Security and Configuration](docs/security-and-
 
 | Item | Value |
 |---|---|
-| Target framework | `net9.0` |
+| Target framework | `net8.0`, `net9.0`, `net10.0` |
 | UI integration | ASP.NET Core MVC |
-| Persistence | Entity Framework Core 9 |
+| Persistence | Entity Framework Core 8, 9, 10 |
 | Database providers | Any EF Core provider |
 | Current package version | `1.0.10` |
 
@@ -199,9 +205,13 @@ Minimal APIs, automatic JSON body capture, and built-in retention/archival are n
 
 ---
 
-## Contributing
+## Community & Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, coding guidelines, and the pull request process.
+- [Contributing Guidelines](CONTRIBUTING.md) — Local development setup, coding standards, and PR process.
+- [Code of Conduct](CODE_OF_CONDUCT.md) — Community pledge and guidelines.
+- [Security Policy](SECURITY.md) — Vulnerability reporting instructions and scope.
+- [Support Policy](SUPPORT.md) — Getting help through documentation and discussions.
+- [Changelog](CHANGELOG.md) — Release history and version updates.
 
 ## License
 
