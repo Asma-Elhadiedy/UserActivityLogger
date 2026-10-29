@@ -1,0 +1,58 @@
+name: Feature Request
+description: Propose a new feature, option, or improvement to UserActivityLogger.
+title: "[Feature]: "
+labels:
+  - "enhancement"
+  - "status: needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        UserActivityLogger aims to stay lightweight, low-ceremony, and focused on ASP.NET Core MVC audit logging.
+        Please explain how your proposal aligns with the library's design goals.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Description
+      description: What limitation or use case are you trying to solve? Who is affected?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed Solution & Public API Design
+      description: Describe how the feature would work. Include proposed C# code snippets or API signatures if applicable.
+      placeholder: |
+        ```csharp
+        builder.Services.AddUserActivityLogger<AppDbContext>(options =>
+        {
+            // Proposed option or configuration
+        });
+        ```
+    validations:
+      required: true
+  - type: dropdown
+    id: breaking-change
+    attributes:
+      label: Breaking Change Assessment
+      description: Does this proposal require breaking changes to existing public types, interfaces, or database schemas?
+      options:
+        - "No - fully backward compatible"
+        - "Yes - requires a major version bump"
+        - "Unsure"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches or workarounds did you consider? Why is the proposed solution preferred?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and feature requests first.
+          required: true
+        - label: I reviewed the Architecture Overview and understand current library constraints.
+          required: true

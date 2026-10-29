@@ -1,0 +1,74 @@
+name: Bug Report
+description: Report unexpected behavior, errors, or exceptions in UserActivityLogger.
+title: "[Bug]: "
+labels:
+  - "bug"
+  - "status: needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please do not include credentials, passwords, connection strings, or sensitive data in this report.
+        If this is a security vulnerability, report it privately under [SECURITY.md](https://github.com/Asma-Elhadiedy/UserActivityLogger/security/policy).
+  - type: input
+    id: package-version
+    attributes:
+      label: UserActivityLogger Package Version
+      description: What version of the NuGet package are you using?
+      placeholder: "e.g., 1.0.10"
+    validations:
+      required: true
+  - type: dropdown
+    id: target-framework
+    attributes:
+      label: Target Framework
+      description: Which .NET target framework is your consuming application running on?
+      options:
+        - ".NET 8.0"
+        - ".NET 9.0"
+        - ".NET 10.0"
+        - "Other"
+    validations:
+      required: true
+  - type: input
+    id: efcore-provider
+    attributes:
+      label: EF Core Database Provider
+      description: Which EF Core provider are you using (e.g., SqlServer, Npgsql, Sqlite, Pomelo)?
+      placeholder: "e.g., Microsoft.EntityFrameworkCore.SqlServer 9.0.0"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and how it differs from what you expected.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce
+      description: Provide step-by-step instructions or a minimal code example to reproduce the issue.
+      placeholder: |
+        1. Configure UserActivityLogger in Program.cs with options: ...
+        2. Decorate action with [LogUserActivity("Test")]
+        3. Send HTTP request to endpoint: ...
+        4. See error or missing log row in database
+    validations:
+      required: true
+  - type: textarea
+    id: logs-and-stacktrace
+    attributes:
+      label: Logs / Stack Trace
+      description: Paste any relevant console output or exception stack traces (remember to redact secrets).
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing GitHub issues and discussions to verify this isn't already reported.
+          required: true
+        - label: I confirmed no passwords, tokens, or private data are present in this report.
+          required: true

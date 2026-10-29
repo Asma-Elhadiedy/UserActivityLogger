@@ -1,0 +1,108 @@
+# Standard Types
+- name: "bug"
+  color: "d73a4a"
+  description: "Something is broken or producing an error."
+
+- name: "documentation"
+  color: "0075ca"
+  description: "Improvements or additions to documentation."
+
+- name: "enhancement"
+  color: "a2eeef"
+  description: "New feature, option, or improvement."
+
+- name: "good first issue"
+  color: "7057ff"
+  description: "Good for newcomers to the project."
+
+- name: "help wanted"
+  color: "008672"
+  description: "Extra attention is needed from the community."
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information or usage assistance requested."
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "This issue or pull request already exists."
+
+- name: "invalid"
+  color: "e4e669"
+  description: "This doesn't seem right or is out of project scope."
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "This will not be worked on."
+
+# SemVer & Impact
+- name: "breaking-change"
+  color: "b60205"
+  description: "Introduces a breaking public API or schema change."
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Updates to package or action dependencies."
+
+- name: "security"
+  color: "e11d21"
+  description: "Security fixes or vulnerability reports."
+
+# Functional Areas
+- name: "area: filter"
+  color: "5319e7"
+  description: "UserActivityLoggingFilter and attribute interception."
+
+- name: "area: entity"
+  color: "5319e7"
+  description: "UserActivityLog entity, DbContext mapping, and migrations."
+
+- name: "area: logging"
+  color: "5319e7"
+  description: "IUserActivityLogger contract and UserActivityLoggerService."
+
+- name: "area: efcore"
+  color: "5319e7"
+  description: "EF Core persistence, providers, and queries."
+
+- name: "area: options"
+  color: "5319e7"
+  description: "UserActivityLoggerOptions, redaction, and IP resolver."
+
+- name: "area: docs"
+  color: "5319e7"
+  description: "Documentation in docs/ and README."
+
+- name: "area: build"
+  color: "5319e7"
+  description: "MSBuild, multi-targeting, packaging, and CI."
+
+# Priority
+- name: "priority: high"
+  color: "b60205"
+  description: "Urgent issue or block for upcoming release."
+
+- name: "priority: medium"
+  color: "fbca04"
+  description: "Important improvement or standard bug fix."
+
+- name: "priority: low"
+  color: "c2e0c6"
+  description: "Minor improvement or nice-to-have."
+
+# Status
+- name: "status: needs-triage"
+  color: "fbca04"
+  description: "New issue awaiting review from maintainers."
+
+- name: "status: in-progress"
+  color: "0e8a16"
+  description: "Actively being worked on."
+
+- name: "status: blocked"
+  color: "b60205"
+  description: "Blocked by an external issue, decision, or dependency."
+
+- name: "status: needs-info"
+  color: "d4c5f9"
+  description: "Waiting for information or reproduction steps from author."

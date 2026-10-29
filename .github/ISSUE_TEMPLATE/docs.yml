@@ -1,0 +1,36 @@
+name: Documentation
+description: Report an error, missing section, or improvement in the documentation.
+title: "[Docs]: "
+labels:
+  - "documentation"
+  - "area: docs"
+body:
+  - type: input
+    id: doc-path
+    attributes:
+      label: Documentation Location
+      description: Which file, guide, or section needs improvement?
+      placeholder: "e.g., docs/security-and-configuration.md §3"
+    validations:
+      required: true
+  - type: textarea
+    id: issue-description
+    attributes:
+      label: Description of the Problem
+      description: What is inaccurate, outdated, unclear, or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: suggested-fix
+    attributes:
+      label: Suggested Change
+      description: Provide the revised text, code sample, or clarification.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I verified that the issue is in the latest version of the documentation on master.
+          required: true
