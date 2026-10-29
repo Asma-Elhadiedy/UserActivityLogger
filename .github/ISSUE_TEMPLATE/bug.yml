@@ -4,7 +4,6 @@ description: Report unexpected behavior, errors, or exceptions in UserActivityLo
 title: "[Bug]: "
 labels:
   - "bug"
-  - "status: needs-triage"
 body:
   - type: markdown
     attributes:

@@ -9,4 +9,3 @@ rules:
     check-keys: false
   document-start:
     present: true
-

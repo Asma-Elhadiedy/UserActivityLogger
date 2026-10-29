@@ -4,7 +4,6 @@ description: Propose a new feature, option, or improvement to UserActivityLogger
 title: "[Feature]: "
 labels:
   - "enhancement"
-  - "status: needs-triage"
 body:
   - type: markdown
     attributes:

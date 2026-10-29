@@ -21,19 +21,11 @@ REQUIRED_FILES = [
     "SECURITY.md",
     "SUPPORT.md",
     "CHANGELOG.md",
-    "docs/README.md",
-    "docs/getting-started.md",
-    "docs/usage-guide.md",
     "docs/architecture-overview.md",
+    "docs/getting-started.md",
     "docs/security-and-configuration.md",
     "docs/troubleshooting.md",
-    "docs/decisions/README.md",
-    "docs/decisions/0001-multi-target-net8-net9-net10.md",
-    "docs/decisions/0002-mvc-result-filter-architecture.md",
-    "docs/decisions/0003-shared-dbcontext-persistence.md",
-    "docs/development/getting-started.md",
-    "docs/development/testing.md",
-    "docs/development/releasing.md",
+    "docs/usage-guide.md",
 ]
 
 EXCLUDED_DIR_PARTS = {

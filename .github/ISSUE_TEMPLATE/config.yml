@@ -3,10 +3,10 @@ blank_issues_enabled: false
 contact_links:
   - name: Security vulnerability report
     url: https://github.com/Asma-Elhadiedy/UserActivityLogger/security/policy
-    about: Report security vulnerabilities privately. Do not open public issues for security concerns.
-  - name: Documentation index
-    url: https://github.com/Asma-Elhadiedy/UserActivityLogger/blob/master/docs/README.md
-    about: Read the official documentation, getting started guides, and architecture overview.
+    about: Report security vulnerabilities privately.
+  - name: Documentation
+    url: https://github.com/Asma-Elhadiedy/UserActivityLogger#documentation
+    about: Read the official documentation and guides.
   - name: Questions and discussions
     url: https://github.com/Asma-Elhadiedy/UserActivityLogger/discussions
-    about: Ask questions, share ideas, and discuss implementation patterns with the community.
+    about: Ask questions and share implementation ideas.
