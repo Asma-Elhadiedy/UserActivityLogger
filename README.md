@@ -1,8 +1,8 @@
 # UserActivityLogger
 
-[![NuGet](https://img.shields.io/badge/NuGet-1.0.10-blue)](https://www.nuget.org/packages/UserActivityLogger)
-[![CI](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml/badge.svg)](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/UserActivityLogger.svg)](https://www.nuget.org/packages/UserActivityLogger)
+[![CI](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Asma-Elhadiedy/UserActivityLogger/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 An audit logging library for ASP.NET Core MVC applications.
 
@@ -141,12 +141,9 @@ Note: In version 1.0.10, `LogUserActivityAttribute` requires an action descripti
 
 ## Documentation
 
-For a directory of all guides, see the [Documentation index](docs/README.md).
-
 - [Getting started](docs/getting-started.md): Installation, DbContext setup, and migrations.
 - [Usage guide](docs/usage-guide.md): Attributes, predefined messages, form logging, and manual logging.
-- [Architecture overview](docs/architecture-overview.md): Pipeline flow, entity schema, and indexes.
-- [Architecture decision records](docs/decisions/README.md): Record of design and technical decisions.
+- [Architecture overview](docs/architecture-overview.md): Pipeline flow, entity schema, design decisions, and limitations.
 - [Security and configuration](docs/security-and-configuration.md): Options, redaction, and proxy handling.
 - [Troubleshooting](docs/troubleshooting.md): Common setup issues and diagnostic checks.
 

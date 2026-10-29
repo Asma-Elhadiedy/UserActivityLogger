@@ -1,6 +1,6 @@
 # Contributing to UserActivityLogger
 
-This document covers local development setup, coding standards, commit conventions, and the pull request process for UserActivityLogger.
+This document covers local development setup, verification, testing, coding standards, commit conventions, pull request procedures, and release guidelines for UserActivityLogger.
 
 By contributing to this project, you agree to adhere to the [Code of conduct](CODE_OF_CONDUCT.md).
 
@@ -8,9 +8,9 @@ By contributing to this project, you agree to adhere to the [Code of conduct](CO
 
 ### Prerequisites
 
-- .NET SDK 8.0, 9.0, or 10.0
+- .NET SDK 8.0, 9.0, or 10.0 (the library multi-targets `net8.0`, `net9.0`, and `net10.0`)
 - Git 2.30 or newer
-- Python 3.10 or newer (for documentation checks)
+- Python 3.10 or newer (for link and documentation validation)
 
 ### Development setup
 
@@ -35,6 +35,37 @@ By contributing to this project, you agree to adhere to the [Code of conduct](CO
    ./eng/verify.sh
    ```
 
+The verification script reproduces CI checks locally: restoring dependencies, building in Release across all target frameworks, compiling the NuGet package, verifying code formatting, and validating documentation links.
+
+## Testing with the sample application
+
+The repository contains a sample ASP.NET Core MVC application (`UserActivityLogger.Tests`, targeting `net9.0`) demonstrating library integration with Entity Framework Core and SQL Server.
+
+To run and verify the sample application locally:
+
+1. Configure a database connection string in `UserActivityLogger.Tests/appsettings.json`:
+   ```json
+   {
+     "ConnectionStrings": {
+       "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=UserActivityLoggerDemo;Trusted_Connection=True;MultipleActiveResultSets=true"
+     }
+   }
+   ```
+
+2. Apply the EF Core migration:
+   ```bash
+   dotnet ef database update --project UserActivityLogger.Tests
+   ```
+
+3. Start the application:
+   ```bash
+   dotnet run --project UserActivityLogger.Tests
+   ```
+
+4. Navigate to `http://localhost:<port>/Departments` and execute actions (Create, Edit, Delete).
+
+5. Inspect the `UserActivityLog` table to verify audit entries are recorded with status codes, paths, and timestamps.
+
 ## Repository structure
 
 ```text
@@ -42,10 +73,8 @@ UserActivityLogger/
 |-- .github/                  GitHub workflows, issue templates, and scripts
 |   |-- ISSUE_TEMPLATE/       Issue form definitions
 |   |-- scripts/              check-docs.py link and symbol validator
-|   \-- workflows/            Continuous integration and publish workflows
+|   \-- workflows/            ci.yml and publish.yml workflows
 |-- docs/                     Technical documentation
-|   |-- decisions/            Architecture Decision Records (ADRs)
-|   |-- development/          Setup, testing, and release procedures
 |   |-- architecture-overview.md
 |   |-- getting-started.md
 |   |-- security-and-configuration.md
@@ -75,16 +104,15 @@ UserActivityLogger/
 
 ### Reporting bugs
 
-1. Search existing issues to verify the defect has not been reported.
-2. Use the Bug report issue form.
-3. Provide target framework (`net8.0`, `net9.0`, or `net10.0`), Entity Framework Core provider name and version, minimal reproduction steps, and expected versus observed behavior.
+1. Search existing issues to verify the defect has not already been reported.
+2. Submit a report using the Bug report issue form.
+3. Include target framework (`net8.0`, `net9.0`, or `net10.0`), EF Core provider, minimal reproduction code, and expected versus observed behavior.
 
 ### Proposing enhancements
 
-Before writing code for non-trivial additions:
-1. Open a Feature request issue.
-2. Describe the problem, the proposed API additions, and alternatives considered.
-3. Ensure the feature fits the library boundary: lightweight audit logging for ASP.NET Core MVC applications.
+1. Open a Feature request issue before writing code for non-trivial additions.
+2. Explain the use case, proposed API additions, and alternatives considered.
+3. Confirm the proposal fits the library scope: lightweight audit logging for ASP.NET Core MVC applications.
 
 ### Submitting a pull request
 
@@ -103,10 +131,10 @@ Before writing code for non-trivial additions:
 
 ## Coding guidelines
 
-- Target framework compatibility: UserActivityLogger multi-targets `net8.0`, `net9.0`, and `net10.0`. Do not use APIs introduced in .NET 9 or .NET 10 unless guarded with conditional compilation directives (`#if NET9_0_OR_GREATER`).
+- Target framework compatibility: UserActivityLogger multi-targets `net8.0`, `net9.0`, and `net10.0`. Do not use APIs introduced in newer .NET versions unless guarded with conditional compilation directives (`#if NET9_0_OR_GREATER`).
 - Nullable reference types: Nullable reference types are enabled across all projects (`<Nullable>enable</Nullable>`). Do not introduce compiler warnings.
 - XML documentation: All public types, methods, and properties must include valid XML documentation comments.
-- Minimal dependencies: The package references `Microsoft.AspNetCore.App` and `Microsoft.EntityFrameworkCore`. Do not introduce third-party package dependencies without an accepted Architecture Decision Record.
+- Minimal dependencies: The package references `Microsoft.AspNetCore.App` and `Microsoft.EntityFrameworkCore`. Do not introduce third-party package dependencies.
 - Public API stability: Preserve backward compatibility for existing types, interfaces, and method signatures in minor and patch releases.
 
 ## Commit conventions
@@ -116,22 +144,42 @@ Commit messages must follow the Conventional Commits specification:
 - `feat`: A new feature or public capability. Example: `feat: add custom header support for IP resolver`.
 - `fix`: A bug fix. Example: `fix: handle empty SkipPaths collection without exception`.
 - `docs`: Documentation changes. Example: `docs: document proxy IP header configuration`.
-- `test`: Additions or modifications to the sample application. Example: `test: add department edit scenario`.
+- `test`: Modifications to the sample application. Example: `test: add department edit scenario`.
 - `refactor`: Code restructuring without behavioral change. Example: `refactor: extract form key redaction helper`.
-- `ci`: Workflow or automation script changes. Example: `ci: add actionlint step`.
+- `ci`: Workflow or automation script changes. Example: `ci: consolidate format check into build pipeline`.
 - `chore`: Maintenance tasks, configuration updates, or dependency version bumps. Example: `chore: update editorconfig rules`.
 
-## Documentation guidelines
+## Release process (for maintainers)
 
-- Keep documents in `docs/` synchronized with code changes.
-- Significant technical decisions require an ADR under `docs/decisions/` following the template in `docs/decisions/README.md`.
-- Verify all links pass `./.github/scripts/check-docs.py`.
+UserActivityLogger follows Semantic Versioning 2.0.0 (MAJOR.MINOR.PATCH). The single source of truth for the package version is the `<Version>` tag in `UserActivityLogger/UserActivityLogger.csproj`.
 
-## Release and versioning
+To publish a new release:
 
-This project adheres to Semantic Versioning 2.0.0:
-- MAJOR: Incompatible public API changes.
-- MINOR: Backward-compatible functionality additions.
-- PATCH: Backward-compatible bug fixes.
+1. Verify `master` passes all CI checks.
+2. Update `CHANGELOG.md` by moving items from `[Unreleased]` to a new version heading with the current date.
+3. Update `<Version>` in `UserActivityLogger/UserActivityLogger.csproj`.
+4. Run `./eng/verify.sh` to ensure build, pack, format, and docs checks pass.
+5. Commit and push to `master`:
+   ```bash
+   git commit -am "chore(release): bump version to 1.0.11"
+   git push upstream master
+   ```
+6. Create an annotated git tag matching the version and push to upstream:
+   ```bash
+   git tag -a v1.0.11 -m "Release v1.0.11"
+   git push upstream v1.0.11
+   ```
 
-Maintainers handle version updates in `UserActivityLogger.csproj`, changelog updates, and git tagging. Do not modify the package version in contribution pull requests.
+The `publish.yml` workflow verifies that the git tag version matches the `.csproj` version, builds across all target frameworks, packages the library, pushes the package to NuGet.org with `--skip-duplicate`, and creates a GitHub Release with attached artifacts.
+
+### Package unlisting
+
+NuGet.org does not permit permanently deleting packages once published. To deprecate or unlist a faulty package version:
+
+```bash
+dotnet nuget delete UserActivityLogger <version> \
+  --api-key "<NUGET_API_KEY>" \
+  --non-interactive
+```
+
+Alternatively, uncheck "List in search results" under the Listing tab at `https://www.nuget.org/packages/UserActivityLogger/<version>/Manage`.
