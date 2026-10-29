@@ -456,14 +456,14 @@ This section records the architectural rationale and trade-offs behind foundatio
 
 - Decision: Request interception is implemented via `UserActivityLoggingFilter` implementing `IAsyncResultFilter` rather than middleware or an action filter.
 - Rationale: A result filter runs around action result execution (view rendering or response serialization), allowing it to record the final HTTP status code (`Response.StatusCode`) produced by the action and inspect `HttpContext.Items` for runtime overrides.
-- Trade-offs: Unhandled exceptions during action execution bypass result execution and are not logged by the filter. Endpoints outside MVC (such as Minimal APIs) do not execute MVC filters.
+- Trade-offs: Unhandled exceptions during action execution bypass result execution and are not logged by the filter. Endpoints outside MVC (such as Minimal APIs) do not execute MVC filters (tracked in [#5](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/5)).
 - Alternatives considered: Middleware was rejected because it lacks direct access to MVC action descriptors and route values without custom endpoint routing resolution. Action filters (`IAsyncActionFilter`) were rejected because they complete before the action result executes, leaving the final status code unavailable.
 
 ### Shared DbContext unit of work
 
 - Decision: Persistence uses the consuming application's registered `DbContext` (`TContext`) via `UserActivityLoggerService<TContext>`.
 - Rationale: Reusing the host context simplifies registration to a single service call (`AddUserActivityLogger<AppDbContext>()`), shares database connection pooling, transactions, and EF Core provider configurations, and avoids secondary migration tooling.
-- Trade-offs: Calling `_context.SaveChangesAsync()` commits all pending entity changes tracked in the scoped `DbContext`. Logging executes inline on the request thread. Database errors are caught and logged via `ILogger` without failing the client HTTP request.
+- Trade-offs: Calling `_context.SaveChangesAsync()` commits all pending entity changes tracked in the scoped `DbContext`. Logging executes inline on the request thread. Database errors are caught and logged via `ILogger` without failing the client HTTP request (tracked in [#2](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/2), [#3](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/3)).
 - Alternatives considered: A separate audit `DbContext` was rejected for standard scenarios because it introduces multiple connection strings, secondary pooling, and configuration complexity. Message brokers were rejected because they require external infrastructure for a lightweight NuGet library.
 
 ---

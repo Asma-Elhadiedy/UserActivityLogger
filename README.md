@@ -137,7 +137,7 @@ public sealed class HomeController : Controller
 }
 ```
 
-Note: In version 1.0.10, `LogUserActivityAttribute` requires an action description argument. Use `[LogUserActivity("Description")]` or `[LogUserActivity(null)]` to use the action display name.
+Note: In version 1.0.10, `LogUserActivityAttribute` requires an action description argument. Use `[LogUserActivity("Description")]` or `[LogUserActivity(null)]` to use the action display name (tracked in [#23](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/23)).
 
 ## Documentation
 
@@ -149,14 +149,14 @@ Note: In version 1.0.10, `LogUserActivityAttribute` requires an action descripti
 
 ## Important behavior and limitations
 
-- Form bodies only: Request body capture reads form-encoded content (`Request.HasFormContentType`). JSON payloads are not captured.
-- Query strings in path: Query strings are appended to `Path` without redaction. Do not pass credentials or secrets in query parameters.
-- Form-key redaction: Redaction applies only to form field names matching configured terms. Values in `AdditionalData` or query strings are not redacted.
-- Result filter boundary: The filter executes after result execution. Unhandled exceptions that bypass result execution are not logged by the filter.
-- Shared DbContext unit of work: Persistence calls `SaveChangesAsync()` on the scoped application context. Pending entity changes in the same scope are saved together.
-- Inline persistence: Writes occur synchronously within the HTTP request pipeline. There is no background queue or retry mechanism.
-- Best-effort persistence: Database write exceptions are caught, logged via `ILogger`, and suppressed. The client response still succeeds.
-- Local timestamps: `DateEvent` defaults to `DateTime.Now` (server local time). Set `DateEvent` explicitly via `LogAsync` if UTC is required.
+- Form bodies only: Request body capture reads form-encoded content (`Request.HasFormContentType`). JSON payloads are not captured (tracked in [#12](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/12)).
+- Query strings in path: Query strings are appended to `Path` without redaction. Do not pass credentials or secrets in query parameters (tracked in [#7](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/7), [#24](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/24)).
+- Form-key redaction: Redaction applies only to form field names matching configured terms. Values in `AdditionalData` or query strings are not redacted (tracked in [#7](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/7)).
+- Result filter boundary: The filter executes after result execution. Unhandled exceptions that bypass result execution are not logged by the filter (tracked in [#5](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/5)).
+- Shared DbContext unit of work: Persistence calls `SaveChangesAsync()` on the scoped application context. Pending entity changes in the same scope are saved together (tracked in [#3](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/3)).
+- Inline persistence: Writes occur synchronously within the HTTP request pipeline. There is no background queue or retry mechanism (tracked in [#3](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/3)).
+- Best-effort persistence: Database write exceptions are caught, logged via `ILogger`, and suppressed. The client response still succeeds (tracked in [#2](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/2)).
+- Local timestamps: `DateEvent` defaults to `DateTime.Now` (server local time). Set `DateEvent` explicitly via `LogAsync` if UTC is required (tracked in [#13](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/13)).
 
 ## Compatibility
 
