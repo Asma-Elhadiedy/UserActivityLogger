@@ -425,7 +425,7 @@ public sealed class ReportJob
 | `LogActionAsync` | Code runs within an HTTP request and should inherit request context. | Yes |
 | `LogAsync` | Background work or fully custom records. | No |
 
-> **Transaction note:** both methods save through the request's scoped `DbContext` when one is active. `SaveChangesAsync` flushes all pending tracked changes, not only the audit row. See [Architecture Overview](architecture-overview.md#7-limitations).
+> **Transaction note:** by default (`IsolatePersistence = true`), audit persistence executes on an isolated `DbContext` instance and does not flush pending business changes from the request's scoped `DbContext`. When configured with `IsolatePersistence = false`, the logger writes through the scoped context and flushes pending changes. See [Architecture Overview](architecture-overview.md#74-dbcontext-isolation-and-unit-of-work).
 
 ---
 
