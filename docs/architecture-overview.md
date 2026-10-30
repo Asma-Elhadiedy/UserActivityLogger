@@ -406,14 +406,20 @@ There is no queue, outbox, batching, retry, or background worker. Slow database 
 
 `LogAsync` catches every exception and writes it to `ILogger`. The HTTP request still succeeds. Without monitoring, audit gaps can go unnoticed.
 
-### 7.4 Shared `DbContext` and unit of work
+### 7.4 DbContext isolation and unit of work
 
-The service uses the application's scoped `TContext` and calls `SaveChangesAsync()`. This means:
+By default (`IsolatePersistence = true`), `UserActivityLoggerService<TContext>` writes audit records through an isolated `DbContext` instance (via `IDbContextFactory<TContext>` or an isolated service scope), ensuring that:
 
-- all pending tracked changes are saved, not just the audit row,
-- audit writes are not isolated from business transactions,
-- a failed save can leave the audit entity tracked in the `Added` state,
-- a separate audit context or outbox is required for stronger isolation.
+- pending business changes staged in the request's scoped `DbContext` are **never** committed by an audit write,
+- audit writes are isolated from the host application's unit of work and transactions,
+- an uncommitted business entity remains untouched in the change tracker if an audit write succeeds or fails.
+
+If `IsolatePersistence` is set to `false`, the service operates in legacy shared unit of work mode, where:
+
+- all pending tracked changes in the scoped context are saved along with the audit row,
+- a failed save detaches the audit entity from the change tracker to prevent corrupting subsequent operations.
+
+For complete database isolation, `AddDedicatedUserActivityLogger` allows storing audit records in a dedicated database or schema using `AuditDbContext`.
 
 ### 7.5 Form-only body capture
 
@@ -459,12 +465,11 @@ This section records the architectural rationale and trade-offs behind foundatio
 - Trade-offs: Unhandled exceptions during action execution bypass result execution and are not logged by the filter. Endpoints outside MVC (such as Minimal APIs) do not execute MVC filters (tracked in [#5](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/5)).
 - Alternatives considered: Middleware was rejected because it lacks direct access to MVC action descriptors and route values without custom endpoint routing resolution. Action filters (`IAsyncActionFilter`) were rejected because they complete before the action result executes, leaving the final status code unavailable.
 
-### Shared DbContext unit of work
+### DbContext isolation model
 
-- Decision: Persistence uses the consuming application's registered `DbContext` (`TContext`) via `UserActivityLoggerService<TContext>`.
-- Rationale: Reusing the host context simplifies registration to a single service call (`AddUserActivityLogger<AppDbContext>()`), shares database connection pooling, transactions, and EF Core provider configurations, and avoids secondary migration tooling.
-- Trade-offs: Calling `_context.SaveChangesAsync()` commits all pending entity changes tracked in the scoped `DbContext`. Logging executes inline on the request thread. Database errors are caught and logged via `ILogger` without failing the client HTTP request (tracked in [#2](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/2), [#3](https://github.com/Asma-Elhadiedy/UserActivityLogger/issues/3)).
-- Alternatives considered: A separate audit `DbContext` was rejected for standard scenarios because it introduces multiple connection strings, secondary pooling, and configuration complexity. Message brokers were rejected because they require external infrastructure for a lightweight NuGet library.
+- Decision: By default (`IsolatePersistence = true`), audit persistence runs in an isolated `DbContext` instance resolved via `IDbContextFactory<TContext>` or an independent `IServiceScope`.
+- Rationale: In ASP.NET Core, sharing the request's scoped `DbContext` risks unintentionally committing uncommitted business entities or corrupting the unit of work when an audit write occurs. Isolating the context guarantees zero side effects on the application's transaction state while still reusing the database configuration.
+- Alternatives considered: Forcing a mandatory separate database connection was rejected because many applications prefer storing audit logs within the same database. Retaining shared context mode as a configurable option (`IsolatePersistence = false`) maintains compatibility for scenarios requiring atomic commits. Dedicated databases are supported via `AddDedicatedUserActivityLogger`.
 
 ---
 
@@ -476,8 +481,11 @@ This section records the architectural rationale and trade-offs behind foundatio
 | `UserActivityLoggerOptions` | `UserActivityLogger.Options` | Global configuration. |
 | `IUserActivityLogger` | `UserActivityLogger.Services` | Logging contract. |
 | `UserActivityLoggerService<TContext>` | `UserActivityLogger.Services` | EF Core-backed implementation. |
+| `AuditDbContext` | `UserActivityLogger.Entities` | Dedicated audit DbContext for separate databases or schemas. |
 | `UserActivityLog` | `UserActivityLogger.Entities` | Persisted audit entity. |
-| `AddUserActivityLogger<TContext>()` | `UserActivityLogger.Extensions` | DI registration. |
+| `AddUserActivityLogger<TContext>()` | `UserActivityLogger.Extensions` | DI registration with configurable isolation. |
+| `AddIsolatedUserActivityLogger<TContext>()` | `UserActivityLogger.Extensions` | DI registration explicitly enabling isolated persistence. |
+| `AddDedicatedUserActivityLogger()` | `UserActivityLogger.Extensions` | DI registration using dedicated `AuditDbContext`. |
 | `AddUserActivityLogging()` | `UserActivityLogger.Extensions` | MVC filter registration. |
 | `ConfigureUserActivityLogger()` | `UserActivityLogger.Extensions` | EF model configuration. |
 | `ConstPredefinedLogMessage` | `UserActivityLogger.Constants` | Predefined event templates. |

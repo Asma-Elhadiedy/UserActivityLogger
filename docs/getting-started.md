@@ -142,6 +142,20 @@ The defaults are usually enough to start:
 builder.Services.AddUserActivityLogger<AppDbContext>();
 ```
 
+### Dedicated audit database or schema
+
+If you want audit records persisted to a dedicated database or schema independently of the application's business `DbContext`, use `AddDedicatedUserActivityLogger`:
+
+```csharp
+builder.Services.AddDedicatedUserActivityLogger(options =>
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("AuditConnection"));
+});
+```
+
+This registers `IDbContextFactory<AuditDbContext>` and automatically configures `AuditDbContext`.
+
 The default configuration:
 
 | Option | Default |
