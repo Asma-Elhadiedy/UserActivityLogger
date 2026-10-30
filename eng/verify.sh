@@ -7,6 +7,9 @@ dotnet restore UserActivityLogger.sln
 echo "Building solution..."
 dotnet build UserActivityLogger.sln -c Release --no-restore
 
+echo "Running unit tests..."
+dotnet test tests/UserActivityLogger.UnitTests/UserActivityLogger.UnitTests.csproj -c Release --no-build
+
 echo "Packing library package..."
 dotnet pack UserActivityLogger/UserActivityLogger.csproj -c Release --no-build
 
