@@ -1,4 +1,4 @@
-﻿
+
 namespace UserActivityLogger.Options;
 
 /// <summary>
@@ -62,4 +62,12 @@ public class UserActivityLoggerOptions
     /// Default: ***REDACTED***
     /// 
     public string RedactionPlaceholder { get; set; } = "***REDACTED***";
+
+    /// <summary>
+    /// Gets or sets whether audit persistence is isolated from the application's scoped DbContext unit of work.
+    /// When true (default), the service writes to an isolated DbContext instance (via IDbContextFactory or an isolated scope),
+    /// guaranteeing that pending business entity changes in the scoped context are never committed by an audit write.
+    /// When false, the service writes through the application's shared scoped context.
+    /// </summary>
+    public bool IsolatePersistence { get; set; } = true;
 }
