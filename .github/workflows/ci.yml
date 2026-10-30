@@ -60,6 +60,9 @@ jobs:
       - name: Build solution
         run: dotnet build UserActivityLogger.sln -c Release --no-restore
 
+      - name: Run automated tests
+        run: dotnet test UserActivityLogger.sln -c Release --no-build
+
       - name: Verify code style formatting
         run: dotnet format style --verify-no-changes --no-restore
 

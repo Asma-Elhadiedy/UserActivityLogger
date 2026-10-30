@@ -14,6 +14,13 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Code style definitions in `.editorconfig` and YAML lint configuration in `.yamllint.yml`.
 - Local verification script `eng/verify.sh` and link/symbol checker `.github/scripts/check-docs.py`.
 - Consolidated technical documentation under `docs/` covering getting started, usage, architecture, security, and troubleshooting.
+- Explicit write-result contract `AuditWriteResult` and non-throwing `TryLogAsync` method on `IUserActivityLogger` (#2).
+- Configurable `AuditFailureBehavior` (`LogAndContinue` and `Throw`) and `OnAuditFailed` callback in `UserActivityLoggerOptions` (#2).
+- Automated test project `UserActivityLogger.UnitTests` covering persistence failure modes, cancellation, and change tracker isolation (#2).
+
+### Fixed
+- Detached uncommitted audit entities from the DbContext change tracker on persistence failures, preventing change tracker poisoning (#2).
+- Propagated `OperationCanceledException` cleanly instead of treating cancellation as an internal database error (#2).
 
 ## [1.0.10] - 2026-10-21
 
