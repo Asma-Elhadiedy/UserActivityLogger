@@ -257,12 +257,11 @@ Do not trust arbitrary `X-Forwarded-For` values from clients. If using a custom 
 
 Likely causes:
 
-- `AddUserActivityLogging()` called multiple times,
 - the filter added by more than one registration path,
 - both controller-level and action-level attributes present,
 - application code manually logging in addition to the attribute.
 
-Register the filter once:
+Register the filter:
 
 ```csharp
 builder.Services.AddControllersWithViews(options =>
@@ -272,6 +271,15 @@ builder.Services.AddControllersWithViews(options =>
 ```
 
 Avoid combining automatic attribute logging with an equivalent manual `LogActionAsync` call in the same action unless duplicate records are intentional.
+
+Calling `AddUserActivityLogging()` multiple times is safe.
+The filter is only registered once.
+
+Repeated calls to `AddUserActivityLogger<TContext>()` without
+new configuration preserve the original registrations.
+
+Attempting to configure the logger again throws an
+`InvalidOperationException`.
 
 ---
 
