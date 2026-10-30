@@ -70,4 +70,16 @@ public class UserActivityLoggerOptions
     /// When false, the service writes through the application's shared scoped context.
     /// </summary>
     public bool IsolatePersistence { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the policy for handling persistence failures.
+    /// Default: <see cref="AuditFailureBehavior.LogAndContinue"/> to preserve backward compatibility.
+    /// </summary>
+    public AuditFailureBehavior FailureBehavior { get; set; } = AuditFailureBehavior.LogAndContinue;
+
+    /// <summary>
+    /// Gets or sets an optional callback invoked when audit persistence fails.
+    /// Useful for dead-letter queuing, external alerting, or metrics.
+    /// </summary>
+    public Action<AuditFailureContext>? OnAuditFailed { get; set; }
 }
