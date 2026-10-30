@@ -36,6 +36,7 @@ The options object is created at startup and registered as a singleton. Changes 
 | `LogAnonymousUsers` | `bool` | `true` | When `false`, requests without a user ID are skipped. |
 | `IpAddressResolver` | `Func<HttpContext, string>?` | `null` | Custom resolver; falls back to the remote IP when it returns null/empty. |
 | `RedactionPlaceholder` | `string` | `***REDACTED***` | Replacement value for redacted form fields. |
+| `IsolatePersistence` | `bool` | `true` | When `true` (default), audit persistence uses an isolated `DbContext` (via `IDbContextFactory` or an isolated service scope), ensuring uncommitted business entities are never saved by an audit write. When `false`, the service writes to the host application's scoped context. |
 
 ### Per-action attribute options
 
@@ -302,21 +303,28 @@ When anonymous logging is disabled, requests without a non-empty user ID are ski
 
 ## 9. Persistence and transaction considerations
 
-`LogAsync` calls `SaveChangesAsync()` on the application's scoped `DbContext`:
+By default, `UserActivityLogger` isolates audit writes from the application's scoped unit of work (`IsolatePersistence = true`).
+
+When `IsolatePersistence` is `true`:
+
+- The service writes to an isolated `DbContext` instance created via `IDbContextFactory<TContext>` or an independent `IServiceScope`.
+- Pending entity changes staged in the request's scoped `DbContext` are not touched or committed.
+- A failed audit write does not pollute the application's change tracker.
+
+For dedicated audit storage on a separate database or schema:
 
 ```csharp
-_context.Set<UserActivityLog>().Add(log);
-await _context.SaveChangesAsync();
+builder.Services.AddDedicatedUserActivityLogger(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AuditConnection"));
+});
 ```
 
-This has security and correctness implications:
+When `IsolatePersistence` is set to `false`:
 
-- All pending business changes in the same context are saved as well.
-- Audit writes are not isolated from business transactions.
-- A failure is caught and logged but not returned to the caller.
-- The audit entity can remain tracked after a failed save.
-
-For stronger guarantees, use a dedicated audit context, an outbox, or a background queue rather than writing inline through the business context.
+- The service writes through the application's scoped `TContext`.
+- All pending business changes in the context are flushed when `SaveChangesAsync` is called.
+- If persistence fails, the uncommitted audit log entity is automatically detached from the change tracker.
 
 ---
 

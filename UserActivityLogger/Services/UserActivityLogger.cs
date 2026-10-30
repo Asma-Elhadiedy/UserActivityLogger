@@ -1,29 +1,62 @@
-﻿
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Web;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using UserActivityLogger.Entities;
+using UserActivityLogger.Helpers;
+using UserActivityLogger.Options;
+
 namespace UserActivityLogger.Services;
 
-/// 
-/// Implementation of IUserActivityLogger for logging user activities.
-/// 
-/// The DbContext type that contains UserLog entity.
+/// <summary>
+/// Implementation of <see cref="IUserActivityLogger"/> for logging user activities with Entity Framework Core.
+/// </summary>
+/// <typeparam name="TContext">The <see cref="DbContext"/> type containing the audit entity configuration.</typeparam>
 public class UserActivityLoggerService<TContext> : IUserActivityLogger
     where TContext : DbContext
 {
     private readonly ILogger<UserActivityLoggerService<TContext>> _logger;
-    private readonly TContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserActivityLoggerOptions _options;
+    private readonly IDbContextFactory<TContext>? _contextFactory;
+    private readonly IServiceScopeFactory? _scopeFactory;
+    private readonly TContext? _context;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserActivityLoggerService{TContext}"/> class.
+    /// Used by dependency injection to resolve isolated or scoped context dependencies.
+    /// </summary>
+    [ActivatorUtilitiesConstructor]
+    public UserActivityLoggerService(
+        ILogger<UserActivityLoggerService<TContext>> logger,
+        IHttpContextAccessor httpContextAccessor,
+        UserActivityLoggerOptions options,
+        IServiceScopeFactory? scopeFactory = null,
+        IDbContextFactory<TContext>? contextFactory = null,
+        TContext? context = null)
+    {
+        _logger = logger;
+        _httpContextAccessor = httpContextAccessor;
+        _options = options;
+        _scopeFactory = scopeFactory;
+        _contextFactory = contextFactory;
+        _context = context;
+    }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="UserActivityLoggerService{TContext}"/> class with a direct context instance.
+    /// Maintained for backwards compatibility.
+    /// </summary>
     public UserActivityLoggerService(
         ILogger<UserActivityLoggerService<TContext>> logger,
         TContext context,
         IHttpContextAccessor httpContextAccessor,
         UserActivityLoggerOptions options)
+        : this(logger, httpContextAccessor, options, null, null, context)
     {
-        _logger = logger;
-        _context = context;
-        _httpContextAccessor = httpContextAccessor;
-        _options = options;
     }
 
     private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -32,19 +65,148 @@ public class UserActivityLoggerService<TContext> : IUserActivityLogger
         WriteIndented = false
     };
 
-    public async Task LogAsync(UserActivityLog log)
+    /// <summary>
+    /// Logs a user activity entry to the database according to configured <see cref="AuditFailureBehavior"/>.
+    /// </summary>
+    /// <param name="log">The log entry to save.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public Task LogAsync(UserActivityLog log)
     {
-        try
+        return LogAsync(log, CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Logs a user activity entry to the database with cancellation support according to configured <see cref="AuditFailureBehavior"/>.
+    /// </summary>
+    /// <param name="log">The log entry to save.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task LogAsync(UserActivityLog log, CancellationToken cancellationToken)
+    {
+        var result = await TryLogAsync(log, cancellationToken).ConfigureAwait(false);
+
+        if (result.Canceled && result.Error != null)
         {
-            _context.Set<UserActivityLog>().Add(log);
-            await _context.SaveChangesAsync();
+            throw result.Error;
         }
-        catch (Exception ex)
+
+        if (!result.Succeeded && _options.FailureBehavior == AuditFailureBehavior.Throw && result.Error != null)
         {
-            _logger.LogError(ex, "Failed to save user activity log");
+            throw result.Error;
         }
     }
 
+    /// <summary>
+    /// Attempts to log a user activity entry and returns an explicit write result without throwing on persistence failure.
+    /// When <see cref="UserActivityLoggerOptions.IsolatePersistence"/> is true (default),
+    /// persistence executes on an isolated DbContext instance, ensuring pending business changes are never committed.
+    /// </summary>
+    /// <param name="log">The log entry to save.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>An <see cref="AuditWriteResult"/> indicating whether persistence succeeded, failed, or was cancelled.</returns>
+    public async Task<AuditWriteResult> TryLogAsync(UserActivityLog log, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(log);
+
+        if (cancellationToken.IsCancellationRequested)
+        {
+            var canceledEx = new OperationCanceledException(cancellationToken);
+            _logger.LogInformation("Audit logging operation was cancelled before execution for Event '{Event}'.", log.Event);
+            return AuditWriteResult.Cancelled(canceledEx);
+        }
+
+        try
+        {
+            if (_options.IsolatePersistence)
+            {
+                if (_contextFactory != null)
+                {
+                    await using var isolatedContext = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                    isolatedContext.Set<UserActivityLog>().Add(log);
+                    await isolatedContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    return AuditWriteResult.Success;
+                }
+
+                if (_scopeFactory != null)
+                {
+                    await using var scope = _scopeFactory.CreateAsyncScope();
+                    var isolatedContext = scope.ServiceProvider.GetService<TContext>();
+                    if (isolatedContext != null)
+                    {
+                        isolatedContext.Set<UserActivityLog>().Add(log);
+                        await isolatedContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                        return AuditWriteResult.Success;
+                    }
+                }
+            }
+
+            if (_context != null)
+            {
+                _context.Set<UserActivityLog>().Add(log);
+                await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                return AuditWriteResult.Success;
+            }
+
+            if (_contextFactory != null)
+            {
+                await using var isolatedContext = await _contextFactory.CreateDbContextAsync(cancellationToken).ConfigureAwait(false);
+                isolatedContext.Set<UserActivityLog>().Add(log);
+                await isolatedContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                return AuditWriteResult.Success;
+            }
+
+            if (_scopeFactory != null)
+            {
+                await using var scope = _scopeFactory.CreateAsyncScope();
+                var isolatedContext = scope.ServiceProvider.GetService<TContext>();
+                if (isolatedContext != null)
+                {
+                    isolatedContext.Set<UserActivityLog>().Add(log);
+                    await isolatedContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+                    return AuditWriteResult.Success;
+                }
+            }
+
+            throw new InvalidOperationException(
+                $"No DbContext or factory could be resolved for type '{typeof(TContext).Name}'. " +
+                "Ensure that AddDbContext, AddDbContextFactory, or an isolated DbContext is registered.");
+        }
+        catch (OperationCanceledException ex)
+        {
+            if (_context != null)
+            {
+                DetachAuditEntry(_context, log);
+            }
+
+            _logger.LogInformation("Audit logging operation was cancelled for Event '{Event}'.", log.Event);
+            NotifyFailureCallback(log, ex);
+            return AuditWriteResult.Cancelled(ex);
+        }
+        catch (Exception ex)
+        {
+            if (_context != null)
+            {
+                DetachAuditEntry(_context, log);
+            }
+
+            _logger.LogError(
+                ex,
+                "Failed to persist user activity log for Event '{Event}', User '{UserId}', Path '{Path}'.",
+                log.Event,
+                log.UserId ?? "Anonymous",
+                log.Path ?? "N/A");
+
+            NotifyFailureCallback(log, ex);
+            return AuditWriteResult.Failed(ex);
+        }
+    }
+
+    /// <summary>
+    /// Logs a user action with the current HTTP context information.
+    /// </summary>
+    /// <param name="action">The action description.</param>
+    /// <param name="additionalData">Optional additional data to include in the log.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task LogActionAsync(string action, object? additionalData = null)
     {
         var httpContext = _httpContextAccessor.HttpContext;
@@ -57,13 +219,10 @@ public class UserActivityLoggerService<TContext> : IUserActivityLogger
         if (ShouldSkipPath(httpContext.Request.Path))
             return;
 
-
         string? userId = GetUserId(httpContext);
 
-        // Check if we should log anonymous users
         if (string.IsNullOrEmpty(userId) && !_options.LogAnonymousUsers)
             return;
-
 
         var log = new UserActivityLog
         {
@@ -76,7 +235,40 @@ public class UserActivityLoggerService<TContext> : IUserActivityLogger
             ResponseStatusCode = httpContext.Response.StatusCode,
         };
 
-        await LogAsync(log);
+        var cancellationToken = httpContext.RequestAborted;
+        await LogAsync(log, cancellationToken).ConfigureAwait(false);
+    }
+
+    private void DetachAuditEntry(DbContext context, UserActivityLog log)
+    {
+        try
+        {
+            var entry = context.Entry(log);
+            if (entry.State != EntityState.Detached)
+            {
+                entry.State = EntityState.Detached;
+            }
+        }
+        catch (Exception detachEx)
+        {
+            _logger.LogWarning(detachEx, "Failed to detach uncommitted audit log entity from DbContext change tracker.");
+        }
+    }
+
+    private void NotifyFailureCallback(UserActivityLog log, Exception ex)
+    {
+        if (_options.OnAuditFailed == null)
+            return;
+
+        try
+        {
+            var failureContext = new AuditFailureContext(log, ex, _httpContextAccessor.HttpContext);
+            _options.OnAuditFailed(failureContext);
+        }
+        catch (Exception callbackEx)
+        {
+            _logger.LogError(callbackEx, "Unhandled exception in UserActivityLoggerOptions.OnAuditFailed callback.");
+        }
     }
 
     private string? GetUserId(HttpContext context)
