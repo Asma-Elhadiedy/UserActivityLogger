@@ -5,6 +5,7 @@ using UserActivityLogger.Entities;
 using UserActivityLogger.Filters;
 using UserActivityLogger.Options;
 using UserActivityLogger.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace UserActivityLogger.Extensions;
 
@@ -27,6 +28,21 @@ public static class ServiceCollectionExtensions
         where TContext : DbContext
     {
         ArgumentNullException.ThrowIfNull(services);
+        bool optionsRegistered = services.Any(
+            service => service.ServiceType == typeof(UserActivityLoggerOptions)
+        );
+
+        if (optionsRegistered)
+        {
+            if (configure != null)
+            {
+                throw new InvalidOperationException(
+                    "UserActivityLogger is already configured."
+                );
+            }
+
+            return services;
+        }
 
         // Configure options
         var options = new UserActivityLoggerOptions();
@@ -37,8 +53,8 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
 
         // Register filter and logging service
-        services.AddScoped<IUserActivityLogger, UserActivityLoggerService<TContext>>();
-        services.AddScoped<UserActivityLoggingFilter>();
+        services.TryAddScoped<IUserActivityLogger, UserActivityLoggerService<TContext>>();
+        services.TryAddScoped<UserActivityLoggingFilter>();
 
         return services;
     }
@@ -112,7 +128,15 @@ public static class ServiceCollectionExtensions
     public static MvcOptions AddUserActivityLogging(this MvcOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
-        options.Filters.AddService<UserActivityLoggingFilter>();
+        bool filterExists = options.Filters
+            .OfType<ServiceFilterAttribute>()
+            .Any(filter =>
+                filter.ServiceType == typeof(UserActivityLoggingFilter));
+
+        if (!filterExists)
+        {
+            options.Filters.AddService<UserActivityLoggingFilter>();
+        }
         return options;
     }
 }
