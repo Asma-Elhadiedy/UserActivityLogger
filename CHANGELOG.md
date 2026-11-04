@@ -23,6 +23,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Automated test project `UserActivityLogger.UnitTests` covering persistence failure modes, cancellation, and change tracker isolation (#2).
 
 ### Fixed
+- Made AddUserActivityLogging and AddUserActivityLogger idempotent, preventing duplicate MVC filter executions and duplicate service descriptors (#19, #36).
 - Detached uncommitted audit entities from the DbContext change tracker on persistence failures, preventing change tracker poisoning (#2).
 - Propagated `OperationCanceledException` cleanly instead of treating cancellation as an internal database error (#2).
 
